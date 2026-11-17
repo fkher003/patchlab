@@ -4,12 +4,23 @@
   "private": true,
   "type": "module",
   "description": "Learning prototype: reproducible refund invariant checks",
-  "engines": { "node": ">=24.12.0" },
+  "engines": {
+    "node": ">=24.12.0"
+  },
   "scripts": {
     "test": "node --test test/*.test.ts",
     "demo": "node src/cli.ts demo",
     "check:buggy": "node src/cli.ts check buggy",
     "check:fixed": "node src/cli.ts check fixed",
-    "replay": "node src/cli.ts replay"
+    "replay": "node src/cli.ts replay",
+    "typecheck": "tsc --noEmit",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "verify": "npm run typecheck && npm run format:check && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
   }
 }

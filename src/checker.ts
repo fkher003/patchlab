@@ -1,9 +1,13 @@
 import type { Request, Service } from './refunds.ts';
 
 export type Failure = {
-  rule: 'rejected-request-mutated-state' | 'successful-retry-changed-result' |
-    'id-reused-with-different-amount' | 'invalid-amount-accepted' |
-    'balance-out-of-bounds' | 'accepted-amount-not-recorded';
+  rule:
+    | 'rejected-request-mutated-state'
+    | 'successful-retry-changed-result'
+    | 'id-reused-with-different-amount'
+    | 'invalid-amount-accepted'
+    | 'balance-out-of-bounds'
+    | 'accepted-amount-not-recorded';
   step: number;
   request: Request;
   before: number;
@@ -18,14 +22,23 @@ export function check(service: Service, paid: number, requests: Request[]): Fail
     const before = service.total();
     const result = service.refund({ ...request });
     const after = service.total();
-    const fail = (rule: Failure['rule']): Failure =>
-      ({ rule, step, request, before, after, status: result.status });
+    const fail = (rule: Failure['rule']): Failure => ({
+      rule,
+      step,
+      request,
+      before,
+      after,
+      status: result.status,
+    });
     if (!Number.isSafeInteger(after) || after < 0 || after > paid)
       return fail('balance-out-of-bounds');
     if (result.status !== 'accepted' && before !== after)
       return fail('rejected-request-mutated-state');
-    const valid = typeof request.id === 'string' && request.id.trim() !== '' &&
-      Number.isSafeInteger(request.amount) && request.amount > 0;
+    const valid =
+      typeof request.id === 'string' &&
+      request.id.trim() !== '' &&
+      Number.isSafeInteger(request.amount) &&
+      request.amount > 0;
     if (!valid) {
       if (result.status !== 'invalid') return fail('invalid-amount-accepted');
       continue;
@@ -52,8 +65,10 @@ export function minimize(requests: Request[], fails: (xs: Request[]) => boolean)
   let index = 0;
   while (index < result.length) {
     const candidate = result.filter((_, i) => i !== index);
-    if (fails(candidate)) { result = candidate; index = 0; }
-    else index++;
+    if (fails(candidate)) {
+      result = candidate;
+      index = 0;
+    } else index++;
   }
   return result;
 }

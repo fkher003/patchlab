@@ -15,8 +15,13 @@ export function createService(paid: number, variant: Variant): Service {
     total: () => refunded,
     refund(request) {
       const { id, amount } = request;
-      if (typeof id !== 'string' || id.trim() === '' ||
-          !Number.isSafeInteger(amount) || amount <= 0) return { status: 'invalid' };
+      if (
+        typeof id !== 'string' ||
+        id.trim() === '' ||
+        !Number.isSafeInteger(amount) ||
+        amount <= 0
+      )
+        return { status: 'invalid' };
 
       // Intentional defect: buggy variant forgets to recognize successful retries.
       if (variant === 'fixed' && accepted.has(id)) {

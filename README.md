@@ -6,9 +6,11 @@ Bản khởi đầu để học cách kiểm chứng logic: sinh chuỗi yêu c�
 
 ## Chạy ngay
 
-Yêu cầu Node.js >=24.12. Không cần `npm install`, không cần API key.
+Yêu cầu Node.js theo `.node-version` (tối thiểu 24.12). Chạy `npm ci` để cài công cụ phát triển từ lockfile; không cần API key.
 
 ```powershell
+npm ci
+npm run verify
 npm run demo
 npm test
 npm run check:buggy
@@ -51,14 +53,14 @@ Remove-Item Env:PATCHLAB_TARGET
 - Generator nhỏ, tập giá trị hữu hạn, không đo coverage hoặc đại diện lưu lượng thật.
 - Rút gọn chỉ xóa thao tác đến khi không xóa riêng một thao tác nào nữa được; không bảo đảm chuỗi ngắn nhất toàn cục, chưa rút gọn số tiền.
 - Checker vẫn có điểm mù; xem SPEC. Không dùng LLM làm trọng tài đúng/sai.
-- Node chạy TypeScript bằng cách bỏ type, **không kiểm tra kiểu tĩnh**. Bản này chưa có `tsc`; bước tiếp theo thêm TypeScript compiler và kiểm tra kiểu trong CI.
+- Node chạy TypeScript bằng cách bỏ type, **không kiểm tra kiểu tĩnh**. `npm run typecheck` chạy tsc riêng; `npm run verify` gồm typecheck, kiểm tra định dạng và test.
 - Chưa kiểm tra lỗi đồng thời, crash hoặc dữ liệu nhiều đơn. Không tuyên bố bảo đảm an toàn thanh toán.
 
 ## Lộ trình sau khi hiểu bài đầu
 
 1. Tự thêm quy tắc, test và một biến thể lỗi; giải thích trước khi dùng AI sửa.
 2. Thêm mô hình tham chiếu để kiểm tra các yêu cầu đáng lẽ phải thành công.
-3. Thêm typecheck, CI và kiểm thử CLI tự động.
+3. Typecheck, cấu hình CI và test CLI đã có trên nhánh nền móng; xem trạng thái tích hợp trong backlog.
 4. Chọn lỗi công khai có giấy phép phù hợp, cố định phiên bản, tái hiện và ghi nguồn.
 5. Đo kết quả trên nhiều bản lỗi; xin một lập trình viên ngoài dự án chạy thử.
 
@@ -69,3 +71,9 @@ Chỉ ghi vào CV những bước đã hoàn thành, không ghi các mục lộ 
 - https://stripe.com/blog/idempotency — bối cảnh gửi lại yêu cầu.
 - https://nodejs.org/api/typescript.html — thực thi TypeScript và giới hạn type stripping.
 - https://fast-check.dev/docs/tutorials/detect-race-conditions/ — hướng mở rộng kiểm tra thứ tự thực thi.
+
+## Bộ khung làm việc
+
+Đọc theo thứ tự: [Sản phẩm](docs/PRODUCT.md) → [Kiến trúc](docs/ARCHITECTURE.md) → [Quy trình](docs/WORKFLOW.md) → [Backlog](docs/BACKLOG.md). Quy tắc đóng góp ở [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Chạy `npm run format` sau khi sửa file và `npm run verify` trước khi gửi review. CI được cấu hình cho Windows/Linux; kết quả mỗi lần chạy nằm trong GitHub Actions, không suy ra CI xanh chỉ từ file cấu hình.
