@@ -31,7 +31,7 @@ Giữ cấu trúc nhỏ trong giai đoạn nền móng. Không tạo services/co
 - Node test runner để ít dependency; tsc kiểm tra kiểu riêng vì Node chỉ xóa type khi chạy.
 - Chạy tuần tự, in-memory: dễ tái hiện; không suy ra an toàn trong tình huống đồng thời.
 - Shrinker xóa từng thao tác đến mức không thể xóa đơn lẻ thêm; chưa là cực tiểu toàn cục.
-- Checker có giới hạn đã biết: luôn từ chối yêu cầu hợp lệ có thể không bị bắt. PL-101 sẽ bổ sung mô hình tham chiếu độc lập.
+- Checker so sánh status và tổng hoàn với src/model.ts (mô hình tham chiếu viết từ SPEC, không gọi service) nên bắt service luôn từ chối (PL-101, đang Review). Giới hạn: model do cùng người viết có thể hiểu sai SPEC giống implementation; vẫn cần test ví dụ độc lập.
 
 ## Thiết kế đích sau nền móng
 

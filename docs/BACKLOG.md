@@ -7,7 +7,7 @@
 | PL-001 | P0      | PRD, kiến trúc, backlog, quy trình học và phát triển  | Review     | Không          |
 | PL-002 | P0      | Typecheck strict, formatter, lockfile và CI hai OS    | Review     | PL-001         |
 | PL-003 | P0      | Kiểm thử CLI và regression được xuất                  | Review     | PL-002         |
-| PL-101 | P0      | Model tham chiếu bắt service luôn từ chối             | Ready      | PL-003         |
+| PL-101 | P0      | Model tham chiếu bắt service luôn từ chối             | Review     | PL-003         |
 | PL-102 | P1      | Contract adapter cho module bên ngoài                 | Planned    | PL-101         |
 | PL-103 | P1      | Report có version, provenance, output riêng từng run  | Planned    | PL-102         |
 | PL-104 | P1      | Tái hiện một lỗi công khai có nguồn và giấy phép      | Planned    | PL-102, PL-103 |
