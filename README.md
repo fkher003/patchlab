@@ -77,3 +77,7 @@ Chỉ ghi vào CV những bước đã hoàn thành, không ghi các mục lộ 
 Đọc theo thứ tự: [Sản phẩm](docs/PRODUCT.md) → [Kiến trúc](docs/ARCHITECTURE.md) → [Quy trình](docs/WORKFLOW.md) → [Backlog](docs/BACKLOG.md). Quy tắc đóng góp ở [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Chạy `npm run format` sau khi sửa file và `npm run verify` trước khi gửi review. CI được cấu hình cho Windows/Linux; kết quả mỗi lần chạy nằm trong GitHub Actions, không suy ra CI xanh chỉ từ file cấu hình.
+
+## Tiếp tục với Codex hoặc Antigravity
+
+Mở project và yêu cầu AI đọc [AGENTS.md](AGENTS.md), [trạng thái bàn giao](docs/STATUS.md), kiểm tra Git rồi thực hiện bước tiếp theo. Mỗi lần chỉ chạy một AI chỉnh sửa checkout này. AI cuối phiên cập nhật trạng thái để AI sau tự tiếp tục; không cần chuyển cuộc trò chuyện.

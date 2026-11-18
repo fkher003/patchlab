@@ -37,3 +37,7 @@ Không cần nhớ từng dòng hoặc cấm AI sinh code. Nếu chưa giải th
 ## Nhịp làm việc
 
 Mỗi buổi chọn một kết quả nhỏ; cuối buổi ghi điều hoàn thành, vướng mắc và bước tiếp theo. Mỗi tuần demo một luồng chạy được và xem lại phạm vi. Chưa cần Scrum ceremony, nhiều nhánh môi trường hoặc microservices cho quy mô này.
+
+## Bàn giao giữa các AI
+
+Quy trình dùng chung nằm trong [AGENTS.md](../AGENTS.md); điểm tiếp tục nằm trong [STATUS.md](STATUS.md). Một AI thực hiện trọn ticket hoặc nhóm việc liên quan rồi cập nhật trạng thái. Self-review và kiểm tra tự động áp dụng thường xuyên; dành review độc lập cho logic rủi ro cao khi có quota. Bài tập giúp người dùng học nhưng không bắt buộc chờ câu trả lời trước mọi bước triển khai.
