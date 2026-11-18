@@ -12,6 +12,7 @@
     "demo": "node src/cli.ts demo",
     "check:buggy": "node src/cli.ts check buggy",
     "check:fixed": "node src/cli.ts check fixed",
+    "check-module": "node src/cli.ts check-module",
     "replay": "node src/cli.ts replay",
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check .",

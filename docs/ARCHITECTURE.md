@@ -18,6 +18,7 @@ flowchart LR
 | src/refunds.ts        | Contract và hai implementation mô phỏng       | Database, network, đồng thời       |
 | src/generator.ts      | Sinh chuỗi xác định theo seed                 | Xác định đúng/sai                  |
 | src/checker.ts        | Quan sát quy tắc và rút gọn chuỗi lỗi         | Ghi file hoặc gọi LLM              |
+| src/adapter.ts        | Nạp và kiểm tra contract module ngoài         | Sandbox, chạy mã không tin cậy     |
 | src/cli.ts            | Nhận tham số, điều phối, đọc/ghi kết quả      | Được dùng như một security sandbox |
 | test/patchlab.test.ts | Test nghiệp vụ và engine                      | Chứng minh mọi đầu vào đều đúng    |
 | test/cli.test.ts      | Contract CLI, exit code, replay và regression | Benchmark hiệu năng                |

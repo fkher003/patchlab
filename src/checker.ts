@@ -1,5 +1,7 @@
-import type { Request, Service } from './refunds.ts';
+import type { Request, Result, Service } from './refunds.ts';
 import { createModel } from './model.ts';
+
+const STATUSES: string[] = ['accepted', 'invalid', 'conflict', 'exceeds-balance'];
 
 export type Failure = {
   rule:
@@ -10,7 +12,9 @@ export type Failure = {
     | 'balance-out-of-bounds'
     | 'accepted-amount-not-recorded'
     | 'model-status-mismatch'
-    | 'model-total-mismatch';
+    | 'model-total-mismatch'
+    | 'service-threw'
+    | 'contract-violation';
   step: number;
   request: Request;
   before: number;
@@ -23,9 +27,25 @@ export function check(service: Service, paid: number, requests: Request[]): Fail
   const successes = new Map<string, number>();
   const model = createModel(paid);
   for (const [step, request] of requests.entries()) {
-    const before = service.total();
-    const result = service.refund({ ...request });
-    const after = service.total();
+    let before = 0;
+    let result: Result;
+    let after: number;
+    try {
+      before = service.total();
+      result = service.refund({ ...request });
+      after = service.total();
+    } catch {
+      return { rule: 'service-threw', step, request, before, after: before, status: 'threw' };
+    }
+    if (!result || !STATUSES.includes(result.status))
+      return {
+        rule: 'contract-violation',
+        step,
+        request,
+        before,
+        after,
+        status: String(result?.status),
+      };
     const expected = model.apply(request);
     const fail = (rule: Failure['rule']): Failure => ({
       rule,

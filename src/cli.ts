@@ -4,6 +4,7 @@ import { createService } from './refunds.ts';
 import type { Request, Variant } from './refunds.ts';
 import { check, minimize } from './checker.ts';
 import { generate } from './generator.ts';
+import { loadAdapter } from './adapter.ts';
 
 function variant(value: string | undefined): Variant {
   if (value !== 'buggy' && value !== 'fixed') throw new Error('Choose buggy or fixed');
@@ -33,7 +34,7 @@ function replayData(value: unknown): { paid: number; requests: Request[] } {
   return { paid: Number(data.paid), requests };
 }
 
-function main() {
+async function main() {
   const [command, arg, seedArg] = process.argv.slice(2);
   if (command === 'demo') {
     const requests = [
@@ -62,8 +63,31 @@ function main() {
     process.exitCode = failure ? 1 : 0;
     return;
   }
+  if (command === 'check-module') {
+    if (!arg) throw new Error('Usage: check-module file.mjs [seed]');
+    const factory = await loadAdapter(resolve(arg));
+    const startSeed = seedArg === undefined ? 42 : Number(seedArg);
+    generate(startSeed, 0);
+    const paid = 100000;
+    for (let trial = 0; trial < 100; trial++) {
+      const original = generate((startSeed + trial) >>> 0);
+      const failure = check(factory(paid), paid, original);
+      if (!failure) continue;
+      const fails = (xs: Request[]) => check(factory(paid), paid, xs)?.rule === failure.rule;
+      const requests = minimize(original, fails);
+      console.log(`FAIL ${failure.rule}; ${original.length} -> ${requests.length} operations`);
+      console.log(JSON.stringify(check(factory(paid), paid, requests), null, 2));
+      console.log(JSON.stringify(requests));
+      process.exitCode = 1;
+      return;
+    }
+    console.log('PASS: 100 sequences x 30 operations on this module. Not a proof.');
+    return;
+  }
   if (command !== 'check')
-    throw new Error('Usage: demo | check buggy|fixed [seed] | replay file [variant]');
+    throw new Error(
+      'Usage: demo | check buggy|fixed [seed] | check-module file [seed] | replay file [variant]',
+    );
   const name = variant(arg);
   const startSeed = seedArg === undefined ? 42 : Number(seedArg);
   generate(startSeed, 0); // Validate before truncation to uint32.
@@ -116,7 +140,7 @@ function main() {
   );
 }
 try {
-  main();
+  await main();
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 2;

@@ -4,11 +4,11 @@
 
 | ID     | Ưu tiên | Công việc                                             | Trạng thái | Phụ thuộc      |
 | ------ | ------- | ----------------------------------------------------- | ---------- | -------------- |
-| PL-001 | P0      | PRD, kiến trúc, backlog, quy trình học và phát triển  | Review     | Không          |
-| PL-002 | P0      | Typecheck strict, formatter, lockfile và CI hai OS    | Review     | PL-001         |
-| PL-003 | P0      | Kiểm thử CLI và regression được xuất                  | Review     | PL-002         |
-| PL-101 | P0      | Model tham chiếu bắt service luôn từ chối             | Review     | PL-003         |
-| PL-102 | P1      | Contract adapter cho module bên ngoài                 | Planned    | PL-101         |
+| PL-001 | P0      | PRD, kiến trúc, backlog, quy trình học và phát triển  | Done       | Không          |
+| PL-002 | P0      | Typecheck strict, formatter, lockfile và CI hai OS    | Done       | PL-001         |
+| PL-003 | P0      | Kiểm thử CLI và regression được xuất                  | Done       | PL-002         |
+| PL-101 | P0      | Model tham chiếu bắt service luôn từ chối             | Done       | PL-003         |
+| PL-102 | P1      | Contract adapter cho module bên ngoài                 | Done       | PL-101         |
 | PL-103 | P1      | Report có version, provenance, output riêng từng run  | Planned    | PL-102         |
 | PL-104 | P1      | Tái hiện một lỗi công khai có nguồn và giấy phép      | Planned    | PL-102, PL-103 |
 | PL-105 | P1      | Benchmark bản lỗi/bản đúng và phản hồi người dùng thử | Planned    | PL-104         |
@@ -35,6 +35,10 @@ Acceptance criteria:
 - Các ca retry, conflict, dữ liệu sai và hết số dư vẫn có test.
 - Người học giải thích được vì sao model vẫn có thể sai và cần test độc lập.
 
-### PL-102 đến PL-105
+### PL-102 — Done
+
+Contract và tiêu chí chấp nhận nằm ở docs/SPEC.md mục Adapter. Test: test/adapter.test.ts (module tốt qua, reject-all bị bắt, ném lỗi/sai hình dạng thành failure, module không hợp lệ exit 2, không ghi report).
+
+### PL-103 đến PL-105
 
 Chỉ chuyển Ready sau khi ghi cụ thể contract, input/output và test chấp nhận. Chưa đặt deadline cứng cho lỗi công khai vì chưa chọn được case có thể tái hiện. Mỗi lần lập kế hoạch chỉ chọn một ticket đang làm.
