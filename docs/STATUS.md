@@ -21,7 +21,7 @@ Prototype hoàn tiền tuần tự (buggy/fixed), generator có seed, checker so
 
 ## Việc tiếp theo — PL-104 (Planned, cần quyết định người dùng)
 
-Chọn MỘT lỗi công khai có nguồn và giấy phép cho phép dùng lại, tái hiện bằng adapter + check-module. Tiêu chí chọn: logic nhỏ, tuần tự, chạy được không cần dịch vụ ngoài, issue/commit sửa lỗi công khai. Chưa chọn được case; việc này cần tìm kiếm web và người dùng duyệt case trước khi code. check-module chưa ghi report/repro (có thể cần khi làm PL-104). Lưu ý: reports/ là thư mục git-ignored của người dùng, đừng xóa.
+Chọn MỘT lỗi công khai có nguồn và giấy phép cho phép dùng lại, tái hiện bằng adapter + check-module. Tiêu chí chọn: logic nhỏ, tuần tự, chạy được không cần dịch vụ ngoài, issue/commit sửa lỗi công khai. Đã thử tìm web một lần (14:00 18/11): chỉ ra bài viết chung về idempotency, KHÔNG có issue/commit cụ thể kiểm chứng được nên chưa chọn case, không bịa nguồn. Cần tìm trực tiếp trên GitHub (issue đã đóng có commit sửa) và đọc giấy phép repo; việc này cần tìm kiếm web và người dùng duyệt case trước khi code. check-module chưa ghi report/repro (có thể cần khi làm PL-104). Lưu ý: reports/ là thư mục git-ignored của người dùng, đừng xóa.
 
 ## Điểm cần giữ rõ
 
