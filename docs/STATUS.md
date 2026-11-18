@@ -8,7 +8,7 @@ Cập nhật: 18/11/2026, Asia/Saigon. File này được thay nội dung hiện
 - AI bàn giao: Antigravity. Ticket PL-101 code xong, ở Review (chưa merge main).
 - Local: D:/Projects/patchlab.
 - Nhánh: feat/PL-101-reference-model, tạo từ chore/project-foundation (base 6c9480a). Commit PL-101 tra bằng git log.
-- PR #1 (nền móng): https://github.com/fkher003/patchlab/pull/1 — open/draft, chưa merge. Chưa mở PR cho PL-101 và chưa push.
+- PR #1 (nền móng): https://github.com/fkher003/patchlab/pull/1 — open/draft, chưa merge. Đã push nhánh lên origin; chưa mở PR (không có gh CLI). Mở PR (base chore/project-foundation) tại https://github.com/fkher003/patchlab/pull/new/feat/PL-101-reference-model.
 
 ## Đã có
 
@@ -23,7 +23,7 @@ Prototype hoàn tiền tuần tự: buggy/fixed service, generator có seed, che
 
 ## Việc tiếp theo
 
-1. Đọc diff PL-101, push nhánh và mở PR phụ thuộc nền móng nếu người dùng cho phép; chưa tự merge.
+1. Mở PR PL-101 (base chore/project-foundation) qua link trên; chưa tự merge.
 2. Khi nền móng và PL-101 vào main, đổi PL-001/002/003/101 thành Done.
 3. PL-102 (adapter) chỉ chuyển Ready sau khi ghi contract, input/output và test chấp nhận.
 
