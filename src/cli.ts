@@ -9,6 +9,7 @@ import { loadAdapter } from './adapter.ts';
 import { pathToFileURL } from 'node:url';
 import { checkStore, generateStoreOps, minimizeStoreOps } from './lockstore.ts';
 import type { LockStore } from './lockstore.ts';
+import { runBenchmark, toMarkdown } from './benchmark.ts';
 
 function variant(value: string | undefined): Variant {
   if (value !== 'buggy' && value !== 'fixed') throw new Error('Choose buggy or fixed');
@@ -102,6 +103,32 @@ async function main() {
     console.log('PASS: 100 sequences x 30 operations on this module. Not a proof.');
     return;
   }
+  if (command === 'benchmark') {
+    const n = arg === undefined ? 500 : Number(arg);
+    const load = async (file: string) =>
+      (
+        (await import(new URL(`../examples/${file}`, import.meta.url).href)) as {
+          create(o: { maxSize: number }): LockStore;
+        }
+      ).create;
+    const parent = await load('hono-parent.mjs');
+    const fixed = await load('hono-fixed.mjs');
+    const rows = await runBenchmark(n, [
+      {
+        name: 'hono-idempotency memoryStore fixed (28e0f9e)',
+        expected: 'correct',
+        create: () => fixed({ maxSize: 2 }),
+      },
+      {
+        name: 'hono-idempotency memoryStore parent (dc5c675, issue #89)',
+        expected: 'bug',
+        create: () => parent({ maxSize: 2 }),
+      },
+    ]);
+    console.log(toMarkdown(rows));
+    process.exitCode = rows.some((r) => (r.expected === 'correct') !== (r.failing === 0)) ? 1 : 0;
+    return;
+  }
   if (command === 'check-store') {
     if (!arg) throw new Error('Usage: check-store file.mjs [seed]');
     const mod: unknown = await import(pathToFileURL(resolve(arg)).href);
@@ -132,7 +159,7 @@ async function main() {
   }
   if (command !== 'check')
     throw new Error(
-      'Usage: demo | check buggy|fixed [seed] | check-module file [seed] | check-store file [seed] | replay file [variant]',
+      'Usage: demo | check buggy|fixed [seed] | check-module file [seed] | check-store file [seed] | benchmark [n] | replay file [variant]',
     );
   const name = variant(arg);
   const startSeed = seedArg === undefined ? 42 : Number(seedArg);

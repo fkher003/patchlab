@@ -18,7 +18,8 @@
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "verify": "npm run typecheck && npm run format:check && npm test",
-    "check-store": "node src/cli.ts check-store"
+    "check-store": "node src/cli.ts check-store",
+    "benchmark": "node src/cli.ts benchmark"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

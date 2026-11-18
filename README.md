@@ -2,7 +2,7 @@
 
 Bản khởi đầu để học cách kiểm chứng logic: sinh chuỗi yêu cầu hoàn tiền, tìm vi phạm, rút ngắn chuỗi lỗi và xuất test tái hiện.
 
-**Trạng thái:** prototype học tập, dữ liệu và lỗi được cố tình mô phỏng. Chưa kiểm chứng trên repository bên ngoài, chưa có người dùng thật, chưa phải công cụ review code AI tổng quát.
+**Trạng thái:** dự án học tập kiểm chứng logic. Có model tham chiếu, adapter cho module ngoài, báo cáo có phiên bản, và tái hiện một lỗi công khai thật (MIT). Chưa có người dùng ngoài dự án thử (xem docs/FEEDBACK.md), chưa phải công cụ review code AI tổng quát.
 
 ## Chạy ngay
 
@@ -33,6 +33,16 @@ node --test reports/<run>/repro.test.ts
 Remove-Item Env:PATCHLAB_TARGET
 ```
 
+## Kết quả nhanh
+
+```powershell
+npm.cmd run check-store -- examples/hono-parent.mjs   # lỗi thật paveg/hono-idempotency#89: FAIL, 30 -> 4 thao tác
+npm.cmd run check-store -- examples/hono-fixed.mjs    # bản đã sửa: PASS
+npm.cmd run benchmark -- 500                           # bảng phát hiện / báo nhầm
+```
+
+Chi tiết: [CASE-001](docs/CASE-001.md), [Benchmark](docs/BENCHMARK.md). Trên Windows PowerShell dùng `npm.cmd` nếu `npm` bị chặn bởi execution policy.
+
 ## Bắt đầu học
 
 Đọc [buổi học đầu tiên](docs/LESSON-01.md), rồi [đặc tả](docs/SPEC.md). Đừng đọc hết source ngay: dự đoán đầu ra, chạy, giải thích chênh lệch, sau đó mới mở phần lời giải.
@@ -44,6 +54,10 @@ Remove-Item Env:PATCHLAB_TARGET
 - `src/refunds.ts`: dịch vụ mẫu, hai phiên bản buggy/fixed.
 - `src/checker.ts`: các quy tắc quan sát được và thuật toán rút gọn.
 - `src/generator.ts`: sinh dữ liệu có seed, có yêu cầu lặp và giá trị biên.
+- `src/model.ts`: model tham chiếu viết từ SPEC; checker so status và tổng hoàn với nó.
+- `src/adapter.ts`: nạp module ngoài theo contract (`check-module`).
+- `src/lockstore.ts`, `src/benchmark.ts`: checker kho khóa (`check-store`) và benchmark.
+- `vendor/hono-idempotency/`: mã upstream nguyên bản (MIT), xem NOTICE.md.
 - `src/cli.ts`: điều phối và lưu báo cáo; JSON replay được kiểm tra cấu trúc trước khi chạy.
 - `test/patchlab.test.ts`: kiểm tra hành vi nghiệp vụ và chính công cụ kiểm tra.
 
@@ -59,10 +73,10 @@ Remove-Item Env:PATCHLAB_TARGET
 ## Lộ trình sau khi hiểu bài đầu
 
 1. Tự thêm quy tắc, test và một biến thể lỗi; giải thích trước khi dùng AI sửa.
-2. Thêm mô hình tham chiếu để kiểm tra các yêu cầu đáng lẽ phải thành công.
+2. Thêm mô hình tham chiếu để kiểm tra các yêu cầu đáng lẽ phải thành công. (Đã làm, PL-101.)
 3. Typecheck, cấu hình CI và test CLI đã có trên nhánh nền móng; xem trạng thái tích hợp trong backlog.
-4. Chọn lỗi công khai có giấy phép phù hợp, cố định phiên bản, tái hiện và ghi nguồn.
-5. Đo kết quả trên nhiều bản lỗi; xin một lập trình viên ngoài dự án chạy thử.
+4. Chọn lỗi công khai có giấy phép phù hợp, cố định phiên bản, tái hiện và ghi nguồn. (Đã làm, PL-104.)
+5. Đo kết quả trên nhiều bản lỗi (đã làm, docs/BENCHMARK.md); xin một lập trình viên ngoài dự án chạy thử (CHƯA làm, docs/FEEDBACK.md).
 
 Chỉ ghi vào CV những bước đã hoàn thành, không ghi các mục lộ trình như tính năng đã có.
 

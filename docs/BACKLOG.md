@@ -11,7 +11,7 @@
 | PL-102 | P1      | Contract adapter cho module bên ngoài                 | Done       | PL-101         |
 | PL-103 | P1      | Report có version, provenance, output riêng từng run  | Done       | PL-102         |
 | PL-104 | P1      | Tái hiện một lỗi công khai có nguồn và giấy phép      | Done       | PL-102, PL-103 |
-| PL-105 | P1      | Benchmark bản lỗi/bản đúng và phản hồi người dùng thử | Planned    | PL-104         |
+| PL-105 | P1      | Benchmark bản lỗi/bản đúng và phản hồi người dùng thử | Review     | PL-104         |
 
 ## Sprint 0 — Nền móng
 
@@ -47,6 +47,10 @@ Tiêu chí: mỗi run ghi vào thư mục riêng, không ghi đè; failure.json 
 
 Tiêu chí: lỗi công khai có nguồn + giấy phép đã kiểm; mã upstream nguyên bản trong vendor/ kèm NOTICE; PatchLab fail ở parent (đã rút gọn) và pass ở bản sửa; test chạy đúng chuỗi trong issue. Chi tiết: docs/CASE-001.md. Test: test/lockstore.test.ts.
 
-### PL-105
+### PL-105 — Review (benchmark xong; thiếu phản hồi người dùng thật)
+
+Tiêu chí: benchmark xác định trên bản đúng/bản lỗi (docs/BENCHMARK.md, test/benchmark.test.ts) — ĐÃ ĐẠT; ít nhất một lập trình viên ngoài dự án chạy thử theo README và phản hồi được ghi trong docs/FEEDBACK.md — CHƯA ĐẠT. Chỉ chuyển Done khi có phản hồi thật.
+
+### PL-105 (ghi chú cũ)
 
 Chỉ chuyển Ready sau khi ghi cụ thể contract, input/output và test chấp nhận. Chưa đặt deadline cứng cho lỗi công khai vì chưa chọn được case có thể tái hiện. Mỗi lần lập kế hoạch chỉ chọn một ticket đang làm.
