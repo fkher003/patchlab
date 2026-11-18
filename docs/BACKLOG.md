@@ -9,7 +9,7 @@
 | PL-003 | P0      | Kiểm thử CLI và regression được xuất                  | Done       | PL-002         |
 | PL-101 | P0      | Model tham chiếu bắt service luôn từ chối             | Done       | PL-003         |
 | PL-102 | P1      | Contract adapter cho module bên ngoài                 | Done       | PL-101         |
-| PL-103 | P1      | Report có version, provenance, output riêng từng run  | Planned    | PL-102         |
+| PL-103 | P1      | Report có version, provenance, output riêng từng run  | Done       | PL-102         |
 | PL-104 | P1      | Tái hiện một lỗi công khai có nguồn và giấy phép      | Planned    | PL-102, PL-103 |
 | PL-105 | P1      | Benchmark bản lỗi/bản đúng và phản hồi người dùng thử | Planned    | PL-104         |
 
@@ -39,6 +39,10 @@ Acceptance criteria:
 
 Contract và tiêu chí chấp nhận nằm ở docs/SPEC.md mục Adapter. Test: test/adapter.test.ts (module tốt qua, reject-all bị bắt, ném lỗi/sai hình dạng thành failure, module không hợp lệ exit 2, không ghi report).
 
-### PL-103 đến PL-105
+### PL-103 — Done
+
+Tiêu chí: mỗi run ghi vào thư mục riêng, không ghi đè; failure.json schema 2 có provenance; replay từ chối schema thiếu/lạ (exit 2) và vẫn đọc schema 1; repro test xuất ra chạy được từ thư mục mới. Test: test/cli.test.ts.
+
+### PL-104 đến PL-105
 
 Chỉ chuyển Ready sau khi ghi cụ thể contract, input/output và test chấp nhận. Chưa đặt deadline cứng cho lỗi công khai vì chưa chọn được case có thể tái hiện. Mỗi lần lập kế hoạch chỉ chọn một ticket đang làm.

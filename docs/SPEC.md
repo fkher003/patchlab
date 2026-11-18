@@ -23,3 +23,7 @@ Bộ checker chưa là đặc tả đầy đủ: ví dụ một service luôn t�
 `npm run check-module -- đường/dẫn/module.mjs [seed]` nạp một ES module có `export function create(paid)` trả về dịch vụ mới ở mỗi lần gọi: `{ refund({id, amount}) -> {status}, total() -> number }`, đồng bộ, tuần tự. `status` phải thuộc accepted, invalid, conflict, exceeds-balance. Checker xử lý module ném lỗi (service-threw) hoặc trả sai hình dạng (contract-violation) như một lỗi kiểm chứng, không làm crash. Exit: 0 không thấy lỗi trong 100 chuỗi, 1 có lỗi (in chuỗi đã rút gọn), 2 module/tham số sai.
 
 Giới hạn: nạp module là chạy mã của nó với quyền của bạn; chỉ dùng mã tin cậy. Chưa ghi report hoặc regression test cho module ngoài (PL-103). Chưa hỗ trợ async/đồng thời.
+
+## Report (PL-103)
+
+Mỗi lần `check` tìm thấy lỗi ghi `reports/<run>/failure.json` và `repro.test.ts`; `<run>` = thời gian UTC + variant + seed + 6 ký tự hex ngẫu nhiên, nên không ghi đè lần trước. `failure.json` có `schema: 2`, `provenance: { tool, version, runId, createdAt, source }`, cùng seed, paid, chuỗi đã rút gọn và failure. `replay` nhận schema 1 (cũ, không provenance) và 2; thiếu hoặc khác schema thì exit 2. `check-module` chưa ghi report.

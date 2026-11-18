@@ -32,9 +32,9 @@ Cùng ID và số tiền là cùng một yêu cầu đã thành công: tổng ho
 
 ## 4. Để công cụ tìm chuỗi lỗi
 
-Chạy `npm run check:buggy`. Exit code 1 ở đây là dự kiến. Mở `reports/failure.json`, đọc seed, số thao tác ban đầu, chuỗi đã rút gọn và rule bị vi phạm.
+Chạy `npm run check:buggy`. Exit code 1 ở đây là dự kiến. Mở `reports/<run>/failure.json`, đọc seed, số thao tác ban đầu, chuỗi đã rút gọn và rule bị vi phạm.
 
-Chạy `npm run replay -- reports/failure.json buggy`, rồi đổi `buggy` thành `fixed`. Cuối cùng chạy `node --test reports/repro.test.ts`.
+Chạy `npm run replay -- reports/<run>/failure.json buggy`, rồi đổi `buggy` thành `fixed`. Cuối cùng chạy `node --test reports/<run>/repro.test.ts`.
 
 Tự giải thích: seed dùng để làm gì? Vì sao lưu cả chuỗi thao tác giúp replay ngay cả khi generator thay đổi? Vì sao service phải được tạo mới mỗi lần thử xóa một thao tác?
 

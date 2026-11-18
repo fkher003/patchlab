@@ -14,22 +14,22 @@ npm run verify
 npm run demo
 npm test
 npm run check:buggy
-npm run replay -- reports/failure.json buggy
-npm run replay -- reports/failure.json fixed
+npm run replay -- reports/<run>/failure.json buggy
+npm run replay -- reports/<run>/failure.json fixed
 npm run check:fixed
-node --test reports/repro.test.ts
+node --test reports/<run>/repro.test.ts
 ```
 
 `check:buggy` và replay bản buggy **cố ý trả exit code 1 khi tìm thấy lỗi**. Đó là hành vi đúng của checker, không phải công cụ bị hỏng. Exit code 2 là lỗi tham số hoặc đọc báo cáo. `demo` trả 0 nếu trình diễn chạy xong.
 
-Mỗi lần tìm lỗi ghi đè `reports/failure.json` và `reports/repro.test.ts`; copy riêng nếu muốn giữ nhiều kết quả. Lần chạy không tìm lỗi không xóa báo cáo cũ: hãy đọc seed và variant trong báo cáo, đừng coi file tồn tại là lỗi của lần chạy mới.
+Mỗi lần tìm lỗi tạo thư mục riêng `reports/<run>/` (thời gian-variant-seed-mã ngẫu nhiên) chứa `failure.json` (schema 2, có `provenance`) và `repro.test.ts`; không bao giờ ghi đè lần trước. Thay `<run>` bằng tên thư mục in ra sau khi chạy. `replay` chỉ nhận schema 1 (cũ) hoặc 2; schema khác trả exit 2.
 
 ```powershell
 # Đổi seed: cùng seed và cùng phiên bản generator tạo cùng đầu vào.
 npm run check:buggy -- 123
 # Test đã xuất mặc định kiểm tra fixed. Chạy với buggy để thấy regression:
 $env:PATCHLAB_TARGET = 'buggy'
-node --test reports/repro.test.ts
+node --test reports/<run>/repro.test.ts
 Remove-Item Env:PATCHLAB_TARGET
 ```
 

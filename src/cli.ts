@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { resolve } from 'node:path';
 import { createService } from './refunds.ts';
 import type { Request, Variant } from './refunds.ts';
 import { check, minimize } from './checker.ts';
@@ -10,9 +11,23 @@ function variant(value: string | undefined): Variant {
   if (value !== 'buggy' && value !== 'fixed') throw new Error('Choose buggy or fixed');
   return value;
 }
+const REPORT_SCHEMA = 2;
+function toolVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+    return typeof pkg.version === 'string' ? pkg.version : 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
 function replayData(value: unknown): { paid: number; requests: Request[] } {
   if (!value || typeof value !== 'object') throw new Error('Invalid report');
   const data = value as Record<string, unknown>;
+  // Schema 1 (legacy, no provenance) is still replayable; anything else is refused, not guessed.
+  if (data.schema !== 1 && data.schema !== REPORT_SCHEMA)
+    throw new Error(
+      `Unsupported report schema ${String(data.schema)}; expected 1 or ${REPORT_SCHEMA}`,
+    );
   if (
     !Number.isSafeInteger(data.paid) ||
     Number(data.paid) < 0 ||
@@ -103,14 +118,25 @@ async function main() {
       (xs) => check(createService(paid, name), paid, xs)?.rule === failure.rule,
     );
     const reduced = check(createService(paid, name), paid, requests);
-    const reportPath = resolve('reports/failure.json');
-    mkdirSync(dirname(reportPath), { recursive: true });
+    // One directory per run: a new run can never overwrite an earlier report.
+    const createdAt = new Date().toISOString();
+    const runId = `${createdAt.replace(/[:.]/g, '-')}-${name}-seed${seed}-${randomBytes(3).toString('hex')}`;
+    const runDir = resolve('reports', runId);
+    mkdirSync(runDir, { recursive: true });
+    const reportPath = resolve(runDir, 'failure.json');
     writeFileSync(
       reportPath,
       JSON.stringify(
         {
-          schema: 1,
+          schema: REPORT_SCHEMA,
           synthetic: true,
+          provenance: {
+            tool: 'patchlab',
+            version: toolVersion(),
+            runId,
+            createdAt,
+            source: `builtin:${name}`,
+          },
           variant: name,
           seed,
           paid,
@@ -123,10 +149,10 @@ async function main() {
         2,
       ) + '\n',
     );
-    const testPath = resolve('reports/repro.test.ts');
+    const testPath = resolve(runDir, 'repro.test.ts');
     writeFileSync(
       testPath,
-      `import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { createService } from '../src/refunds.ts';\nimport { check } from '../src/checker.ts';\n\ntest('recorded regression: ${failure.rule}', () => {\n  const target = process.env.PATCHLAB_TARGET ?? 'fixed';\n  if (target !== 'fixed' && target !== 'buggy') throw new Error('Invalid target');\n  assert.equal(check(createService(${paid}, target), ${paid}, ${JSON.stringify(requests)}), null);\n});\n`,
+      `import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { createService } from '../../src/refunds.ts';\nimport { check } from '../../src/checker.ts';\n\ntest('recorded regression: ${failure.rule}', () => {\n  const target = process.env.PATCHLAB_TARGET ?? 'fixed';\n  if (target !== 'fixed' && target !== 'buggy') throw new Error('Invalid target');\n  assert.equal(check(createService(${paid}, target), ${paid}, ${JSON.stringify(requests)}), null);\n});\n`,
     );
     console.log(
       `FAIL ${reduced?.rule}; seed=${seed}; ${original.length} -> ${requests.length} operations`,
