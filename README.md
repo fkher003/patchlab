@@ -45,7 +45,7 @@ Chi tiết: [CASE-001](docs/CASE-001.md), [Benchmark](docs/BENCHMARK.md). Trên 
 
 ## Bắt đầu học
 
-Đọc [buổi học đầu tiên](docs/LESSON-01.md), rồi [đặc tả](docs/SPEC.md). Đừng đọc hết source ngay: dự đoán đầu ra, chạy, giải thích chênh lệch, sau đó mới mở phần lời giải.
+Nếu mới mở project, bắt đầu bằng [hướng dẫn 15 phút đọc kết quả](docs/QUICKSTART-LEARNING.md). Sau đó đọc [buổi học đầu tiên](docs/LESSON-01.md), rồi [đặc tả](docs/SPEC.md). Đừng đọc hết source ngay: dự đoán đầu ra, chạy, giải thích chênh lệch, sau đó mới mở phần lời giải.
 
 ## Các phần của hệ thống
 
@@ -74,7 +74,7 @@ Chi tiết: [CASE-001](docs/CASE-001.md), [Benchmark](docs/BENCHMARK.md). Trên 
 
 1. Tự thêm quy tắc, test và một biến thể lỗi; giải thích trước khi dùng AI sửa.
 2. Thêm mô hình tham chiếu để kiểm tra các yêu cầu đáng lẽ phải thành công. (Đã làm, PL-101.)
-3. Typecheck, cấu hình CI và test CLI đã có trên nhánh nền móng; xem trạng thái tích hợp trong backlog.
+3. Typecheck, cấu hình CI và test CLI đã tích hợp main; xem backlog để biết các phần còn thiếu.
 4. Chọn lỗi công khai có giấy phép phù hợp, cố định phiên bản, tái hiện và ghi nguồn. (Đã làm, PL-104.)
 5. Đo kết quả trên nhiều bản lỗi (đã làm, docs/BENCHMARK.md); xin một lập trình viên ngoài dự án chạy thử (CHƯA làm, docs/FEEDBACK.md).
 
@@ -95,3 +95,7 @@ Chạy `npm run format` sau khi sửa file và `npm run verify` trước khi g�
 ## Tiếp tục với Codex hoặc Antigravity
 
 Mở project và yêu cầu AI đọc [AGENTS.md](AGENTS.md), [trạng thái bàn giao](docs/STATUS.md), kiểm tra Git rồi thực hiện bước tiếp theo. Mỗi lần chỉ chạy một AI chỉnh sửa checkout này. AI cuối phiên cập nhật trạng thái để AI sau tự tiếp tục; không cần chuyển cuộc trò chuyện.
+
+## Trạng thái MVP
+
+Các adapter ngoài đã chạy được nhưng chưa xuất report/regression test để replay; benchmark chưa đo thời gian; chưa có người dùng thử ngoài dự án. Các khoảng thiếu được ghi trong [PRODUCT](docs/PRODUCT.md) và [BACKLOG](docs/BACKLOG.md).

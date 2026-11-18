@@ -16,13 +16,13 @@
 
 Tổng hoàn nằm trong [0, tiền đã thu]; từ chối không thay đổi tổng hoàn; lần thành công mới tăng đúng số tiền; retry thành công không tăng tiền; ID thành công không được đổi số tiền.
 
-Bộ checker chưa là đặc tả đầy đủ: ví dụ một service luôn từ chối các yêu cầu hợp lệ có thể qua một số kiểm tra tính chất. Các test ví dụ giúp bổ sung nhưng cũng không chứng minh đúng hoàn toàn. Bài học tiếp theo là xây mô hình tham chiếu để kiểm tra cả trường hợp phải chấp nhận.
+Checker hiện so sánh status và tổng hoàn với src/model.ts, nên bắt được service luôn từ chối yêu cầu hợp lệ (PL-101). Model và checker vẫn có thể hiểu sai đặc tả hoặc bỏ sót đầu vào; giữ test ví dụ độc lập và không coi PASS là chứng minh đúng hoàn toàn.
 
 ## Adapter cho module bên ngoài (PL-102)
 
 `npm run check-module -- đường/dẫn/module.mjs [seed]` nạp một ES module có `export function create(paid)` trả về dịch vụ mới ở mỗi lần gọi: `{ refund({id, amount}) -> {status}, total() -> number }`, đồng bộ, tuần tự. `status` phải thuộc accepted, invalid, conflict, exceeds-balance. Checker xử lý module ném lỗi (service-threw) hoặc trả sai hình dạng (contract-violation) như một lỗi kiểm chứng, không làm crash. Exit: 0 không thấy lỗi trong 100 chuỗi, 1 có lỗi (in chuỗi đã rút gọn), 2 module/tham số sai.
 
-Giới hạn: nạp module là chạy mã của nó với quyền của bạn; chỉ dùng mã tin cậy. Chưa ghi report hoặc regression test cho module ngoài (PL-103). Chưa hỗ trợ async/đồng thời.
+Giới hạn: nạp module là chạy mã của nó với quyền của bạn; chỉ dùng mã tin cậy. Chưa ghi report hoặc regression test cho module ngoài (phần còn thiếu theo dõi ở PL-107). Chưa hỗ trợ async/đồng thời.
 
 ## Report (PL-103)
 

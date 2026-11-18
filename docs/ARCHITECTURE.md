@@ -24,7 +24,7 @@ flowchart LR
 | test/patchlab.test.ts | Test nghiệp vụ và engine                      | Chứng minh mọi đầu vào đều đúng    |
 | test/cli.test.ts      | Contract CLI, exit code, replay và regression | Benchmark hiệu năng                |
 
-Giữ cấu trúc nhỏ trong giai đoạn nền móng. Không tạo services/controllers/repositories rỗng. Khi PL-102 triển khai adapter, tách contract khỏi service mẫu và để engine phụ thuộc contract thay vì implementation.
+Giữ cấu trúc nhỏ trong giai đoạn nền móng. Không tạo services/controllers/repositories rỗng. PL-102 đã có adapter. Contract Service còn đặt trong refunds.ts và được import dạng type; model và checker không gọi implementation cần kiểm tra. Có thể tách contract khi cần mở rộng, chưa thực hiện refactor này.
 
 ## Quyết định thiết kế được chấp nhận
 
@@ -33,7 +33,7 @@ Giữ cấu trúc nhỏ trong giai đoạn nền móng. Không tạo services/co
 - Node test runner để ít dependency; tsc kiểm tra kiểu riêng vì Node chỉ xóa type khi chạy.
 - Chạy tuần tự, in-memory: dễ tái hiện; không suy ra an toàn trong tình huống đồng thời.
 - Shrinker xóa từng thao tác đến mức không thể xóa đơn lẻ thêm; chưa là cực tiểu toàn cục.
-- Checker so sánh status và tổng hoàn với src/model.ts (mô hình tham chiếu viết từ SPEC, không gọi service) nên bắt service luôn từ chối (PL-101, đang Review). Giới hạn: model do cùng người viết có thể hiểu sai SPEC giống implementation; vẫn cần test ví dụ độc lập.
+- Checker so sánh status và tổng hoàn với src/model.ts (mô hình tham chiếu viết từ SPEC, không gọi service) nên bắt service luôn từ chối (PL-101, đã tích hợp main). Giới hạn: model do cùng người viết có thể hiểu sai SPEC giống implementation; vẫn cần test ví dụ độc lập.
 
 ## Thiết kế đích sau nền móng
 
@@ -41,4 +41,10 @@ Contract adapter → generator và engine độc lập → model tham chiếu �
 
 ## Tin cậy và dữ liệu
 
-Report là dữ liệu đầu vào, phải validate trước replay. Phiên bản hiện tại chưa kiểm tra schema version (PL-103). Test tích hợp dùng thư mục tạm để không ghi đè báo cáo của người học. Không đưa token, .env hoặc dữ liệu khách hàng vào repository. CI chỉ cần quyền đọc nội dung và không cần API key.
+Report là dữ liệu đầu vào, phải validate trước replay. Replay hiện nhận schema 1/2 và từ chối phiên bản lạ (PL-103). Report/test xuất ra mới áp dụng cho service mẫu; module ngoài và store chưa có luồng report/replay (PL-107). Test tích hợp dùng thư mục tạm để không ghi đè báo cáo của người học. Không đưa token, .env hoặc dữ liệu khách hàng vào repository. CI chỉ cần quyền đọc nội dung và không cần API key.
+
+## Phân biệt hai đường chạy
+
+- Hoàn tiền: generator → checker + model tham chiếu → service mẫu hoặc adapter. CLI chỉ xuất report/test cho service mẫu.
+- Kho khóa: generateStoreOps → checkStore → store adapter. CLI hiện in chuỗi lỗi đã rút gọn; chưa xuất report/test.
+- benchmark.ts chạy các target trên tập seed, tính số chuỗi vi phạm và độ dài rút gọn; chưa đo thời gian.

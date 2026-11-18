@@ -23,7 +23,7 @@ PL-003: Test tự động xác nhận demo exit 0; buggy exit 1 và tạo report
 
 ## Sprint 1 — Kiểm chứng tính đúng
 
-### PL-101 — ticket tiếp theo
+### PL-101 — Done
 
 Vấn đề: một implementation luôn từ chối có thể vượt qua các thuộc tính an toàn hiện tại.
 
@@ -51,6 +51,23 @@ Tiêu chí: lỗi công khai có nguồn + giấy phép đã kiểm; mã upstrea
 
 Tiêu chí: benchmark xác định trên bản đúng/bản lỗi (docs/BENCHMARK.md, test/benchmark.test.ts) — ĐÃ ĐẠT; ít nhất một lập trình viên ngoài dự án chạy thử theo README và phản hồi được ghi trong docs/FEEDBACK.md — CHƯA ĐẠT. Chỉ chuyển Done khi có phản hồi thật.
 
-### PL-105 (ghi chú cũ)
+## Theo dõi sau bàn giao
 
-Chỉ chuyển Ready sau khi ghi cụ thể contract, input/output và test chấp nhận. Chưa đặt deadline cứng cho lỗi công khai vì chưa chọn được case có thể tái hiện. Mỗi lần lập kế hoạch chỉ chọn một ticket đang làm.
+### PL-106 — Review: đồng bộ tài liệu và hướng dẫn học
+
+Tiêu chí: SPEC/ARCHITECTURE/PRODUCT khớp implementation; số target benchmark chính xác; hướng dẫn mới dùng lệnh/kết quả đã chạy; giữ trạng thái phản hồi thật chưa có. Code không đổi. Đã đối chiếu 24 test, demo, hai store và benchmark 500 seed trên Windows. Chờ tích hợp nhánh docs/PL-106-handoff-learning.
+
+### PL-107 — Ready: report và replay cho adapter ngoài
+
+Ưu tiên P1, phụ thuộc PL-102/103/104. Đây là khoảng thiếu của MVP, không phải chỉ thêm tính năng phụ.
+
+- check-module/check-store lưu report riêng từng run với contract, seed, cấu hình, chuỗi rút gọn, nguồn adapter và hash nguồn để phát hiện thay đổi.
+- Replay dùng đúng contract và adapter được người dùng chỉ định rõ; report không được tự lựa chọn và thực thi đường dẫn mã tùy ý.
+- Report thiếu/sai schema, contract hoặc metadata trả exit 2 với thông báo rõ; tương thích report cũ được kiểm tra.
+- Regression xuất ra chạy được trên target; test chứng minh bản lỗi fail/bản sửa pass và hai run không ghi đè.
+- Mã ngoài vẫn phải đáng tin cậy; chưa tuyên bố sandbox. Quy định rõ hash bao phủ adapter hay cả dependency, không hứa hơn implementation.
+- Trước code cập nhật thiết kế report trong SPEC; sau code chạy verify và test CLI, cập nhật tài liệu.
+
+### PL-108 — Planned: đo thời gian benchmark
+
+Ưu tiên P2. Hoàn thiện tiêu chí thời gian trong PRODUCT: tách thời gian thực thi và rút gọn, ghi môi trường/phiên bản, không assert thời gian chính xác trong test. Chuyển Ready sau khi chốt định dạng báo cáo. Không dùng timing làm cam kết tốc độ chung.

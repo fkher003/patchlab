@@ -48,7 +48,7 @@ Nếu dùng AI, yêu cầu nó gợi ý một bước hoặc review test bạn v
 
 ## 6. Thử thách đọc code review
 
-Một service luôn trả `exceeds-balance` và giữ tổng bằng 0 có thể qua checker hiện tại không? Đọc checker để trả lời. Nếu có, hãy mô tả một test bắt được nó. Đây là giới hạn có chủ ý để học cách kiểm tra chính công cụ kiểm thử, không được quảng cáo checker là đầy đủ.
+Một service luôn trả `exceeds-balance` và giữ tổng bằng 0 từng qua checker chỉ kiểm thuộc tính an toàn. Checker hiện đã có model tham chiếu. Đọc src/model.ts và test/model.test.ts để chỉ ra điều kiện bắt lỗi này. Vì sao model vẫn cần được kiểm tra bằng ví dụ độc lập?
 
 ## Điều kiện hoàn thành buổi học
 

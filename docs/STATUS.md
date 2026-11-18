@@ -1,33 +1,37 @@
 # Trạng thái bàn giao PatchLab
 
-Cập nhật: 18/11/2026, Asia/Saigon. File này được thay nội dung hiện tại sau mỗi phiên; lịch sử nằm trong Git.
+Cập nhật 18/11/2026, Asia/Saigon.
 
 ## Phiên và checkout
 
 - Trạng thái: Handoff ready.
-- AI bàn giao: Antigravity. Không giữ ticket đang làm.
-- Local: D:/Projects/patchlab.
-- Nhánh làm việc: feat/PL-105-benchmark-readme, merge fast-forward vào main và push theo quyền người dùng cấp. Dùng git log để biết commit. Chi tiết toàn bộ phiên: docs/WORKLOG.md.
-- PR #1 không được merge qua giao diện; nội dung đã vào main bằng git. Có thể bị GitHub đánh dấu đóng/merged; kiểm tra bằng git log origin/main.
+- AI bàn giao: Codex; không giữ ticket đang làm.
+- Local: D:/Projects/patchlab. Nhánh: docs/PL-106-handoff-learning, base main db2d905.
+- Phiên này chỉ sửa tài liệu; không sửa code/runtime, vendor hoặc reports của người dùng. Không merge.
+- Tra git log để lấy commit cuối. Đọc AGENTS.md trước tiếp tục.
 
-## Đã có
+## Kết quả đã kiểm tra độc lập tại base db2d905
 
-Prototype hoàn tiền tuần tự (buggy/fixed), generator có seed, checker so với model tham chiếu src/model.ts (PL-101), rút gọn, xuất test, replay. PL-102: src/adapter.ts + lệnh `npm run check-module -- file.mjs [seed]` kiểm module ngoài theo contract trong docs/SPEC.md; module ném lỗi hoặc trả sai hình dạng thành failure (service-threw, contract-violation). PL-103: mỗi run ghi reports/<run>/ riêng (failure.json schema 2 + provenance, repro.test.ts); replay nhận schema 1 hoặc 2, khác thì exit 2. PL-104: lỗi công khai paveg/hono-idempotency#89 (MIT) tái hiện trên mã upstream nguyên bản trong vendor/: `npm run check-store -- examples/hono-parent.mjs` fail (30→4 thao tác), hono-fixed.mjs pass; chi tiết docs/CASE-001.md. PL-105 (Review): lệnh `npm run benchmark -- 500`, docs/BENCHMARK.md, README cập nhật, docs/FEEDBACK.md (chưa có phản hồi thật, không bịa). PL-001..104 = Done (đã vào main).
+- npm.cmd run verify qua: strict typecheck, formatter, 24/24 test.
+- demo: buggy hoàn 60.000, fixed 30.000 khi cùng yêu cầu 30.000 được gửi hai lần.
+- check-store parent: FAIL processing-key-lost, 30 → 4 thao tác; fixed PASS trong 100 chuỗi.
+- benchmark 500: fixed refund 0 lỗi; buggy 499; always-reject 500; fixed store 0; parent store 431. Khớp bảng đã lưu.
+- Đây là kiểm tra local Windows; phiên này chưa xác nhận CI mới hoặc kiểm toán toàn bộ source/vendor.
 
-## Kiểm chứng
+## PL-106
 
-- npm run verify (typecheck, prettier, test) qua, 24/24 test trước khi merge PL-105.
-- CI GitHub: người dùng gửi ảnh chụp tab Actions lúc 18:00 18/11 cho thấy các run CI xanh, gồm main commit 7db2793 (PL-104) và các nhánh PL-101..104. Ảnh chỉ hiện trạng thái tổng của từng run, không thấy riêng job Windows/Linux. Chỉ self-review. Trên Windows PowerShell dùng npm.cmd/npx.cmd.
+Đồng bộ tài liệu cũ còn nói model/adapter/schema chưa có; sửa số target benchmark; thêm docs/QUICKSTART-LEARNING.md bằng ví dụ chạy thật. Cập nhật rõ MVP chưa hoàn tất. PL-106 ở Review đến khi tích hợp main. Tài liệu sau sửa được kiểm tra định dạng và git diff --check trước commit.
 
 ## Việc tiếp theo
 
-1. PL-105 chỉ còn thiếu phản hồi người dùng thật: chủ dự án nhờ 1–2 lập trình viên ngoài chạy thử theo README, ghi vào docs/FEEDBACK.md; sau đó chuyển PL-105 Done. AI không được bịa phản hồi.
-2. Tùy chọn: sửa README/doc theo phản hồi; báo upstream hono-idempotency (chưa làm, cần người dùng quyết định); cho check-module/check-store ghi report có provenance.
-3. Sau đó chọn ticket mới trong BACKLOG (chưa có) — lập kế hoạch với người dùng, một ticket mỗi lần. Thư mục reports/ là của người dùng, đừng xóa.
+1. Đọc tiêu chí PL-107 trong BACKLOG và SPEC; thực hiện report/replay/regression cho adapter ngoài. Nếu PL-106 chưa merge, có thể tạo nhánh feat/PL-107-external-reports từ nhánh hiện tại và ghi quan hệ phụ thuộc. Không cần chờ feedback thật để làm phần kỹ thuật này.
+2. PL-105 vẫn thiếu feedback từ lập trình viên ngoài; chỉ người thật cung cấp được. Không gửi tin nhắn cho người khác hoặc báo upstream nếu người dùng chưa yêu cầu.
+3. PL-108 đo timing còn Planned. Không gọi MVP hoàn thành chỉ vì test qua.
 
-## Điểm cần giữ rõ
+## Giới hạn cần nhớ
 
-- Model cùng tác giả với đặc tả có thể sai giống service: giữ test ví dụ viết tay.
-- Nạp module ngoài = chạy mã với quyền người dùng; chưa sandbox.
-- Chỉ một lỗi công khai được tái hiện (CASE-001); chưa có người dùng thật. Mã vendor/ là bản sao nguyên bản MIT, không sửa.
-- Người dùng muốn nhanh để đưa vào CV nhưng phải hiểu project; người dùng báo "chưa hiểu gì": giải thích đơn giản, từng bước, lấy ví dụ cụ thể.
+Report/replay hiện chỉ dùng service mẫu; check-module/check-store chưa ghi report. Benchmark chưa đo thời gian. Có một lỗi upstream đã được tái hiện theo hồ sơ Antigravity, chưa có người dùng ngoài. Model cùng nguồn đặc tả vẫn có thể sai. Adapter chạy mã với quyền người dùng, chưa sandbox.
+
+## Học
+
+Người dùng từng nói chưa hiểu project. Bắt đầu từ QUICKSTART-LEARNING: khóa k2 đang xử lý bị loại khi kho đầy, tại sao đó là lỗi? Dùng dữ liệu cụ thể và câu hỏi nhỏ, không chặn công việc thường lệ để chờ trả lời. Ghi đúng chưa xác nhận người dùng đã hiểu.

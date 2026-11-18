@@ -16,7 +16,7 @@ Người dùng mục tiêu: developer hoặc test automation engineer sửa logi
 4. Khi có lỗi: rút gọn nhưng giữ loại lỗi, lưu báo cáo và test chạy lại được.
 5. Developer sửa module, chạy regression và đưa kiểm tra vào CI.
 
-Đây là luồng đích. Hiện chỉ có hai service mẫu tích hợp sẵn; adapter bên ngoài chưa được triển khai.
+Đây là luồng đích, chưa hoàn thành end-to-end: adapter hoàn tiền và kho khóa đã có; report, regression export và replay hiện chỉ dành cho service mẫu. Kho khóa được thêm làm ca kiểm chứng upstream (CASE-001), không phải bộ kiểm chứng mọi loại store.
 
 ## Phạm vi MVP
 
@@ -39,3 +39,11 @@ Ngoài MVP: dashboard, tài khoản, thanh toán, tự sửa code bằng LLM, đ
 ## Quyết định phát hành
 
 Chỉ gắn mốc MVP khi toàn bộ tiêu chí đạt. Bản hiện tại là prototype học tập; v0.1.0 trong package không đồng nghĩa sản phẩm hoàn thiện.
+
+## Khoảng thiếu đã đối chiếu ngày 18/11/2026
+
+- PL-107: báo cáo/provenance, replay và regression test cho adapter ngoài chưa có.
+- PL-108: benchmark hiện đo số chuỗi vi phạm và shrink, chưa đo thời gian theo tiêu chí MVP.
+- PL-105: chưa có phản hồi người dùng ngoài dự án.
+
+Vì vậy, chưa đánh dấu MVP hoàn thành dù các ticket triển khai trước đã tích hợp main. PL-103 Done phản ánh phạm vi report của service mẫu đã kiểm tra, không đại diện mọi adapter.

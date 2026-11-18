@@ -14,6 +14,8 @@ Cách đọc: cột Detected của mục _correct_ chính là tỉ lệ báo nh�
 
 ## Giới hạn
 
-- Chỉ 3 bản lỗi/mutant cho hoàn tiền (1 bản là mutant tự tạo) và 1 lỗi công khai thật (CASE-001); chưa đại diện cho lỗi thực tế nói chung.
+- Có 5 target: 3 target hoàn tiền (1 bản đúng, 2 bản lỗi mô phỏng) và 2 phiên bản kho khóa upstream (parent có lỗi, bản sửa). Chỉ có 1 lỗi công khai (CASE-001); chưa đại diện cho lỗi thực tế nói chung.
 - Detected phụ thuộc generator (khoá và số tiền lấy từ tập nhỏ, maxSize cố định 2). Đừng suy ra tỉ lệ phát hiện lỗi ngoài đời.
 - Chưa có phản hồi người dùng thử: xem docs/FEEDBACK.md.
+
+Đối chiếu lại bởi Codex ngày 18/11/2026 tại db2d905: benchmark 500 seed khớp bảng trên. Độ dài trung bình chỉ tính trên các chuỗi bị phát hiện lỗi; giá trị 0 ở target không lỗi không có nghĩa chuỗi đầu vào dài 0. Đây là phép đo trên tập sinh đã chọn, không phải sensitivity/specificity của một bộ phân loại lỗi tổng quát.
