@@ -17,7 +17,7 @@ Prototype hoàn tiền tuần tự (buggy/fixed), generator có seed, checker so
 ## Kiểm chứng
 
 - npm run verify (typecheck, prettier, test) qua, 22/22 test trước khi merge PL-104.
-- CI GitHub Windows/Linux chưa quan sát sau các lần merge này; kiểm tra tab Actions của repo. Chỉ self-review. Trên Windows PowerShell dùng npm.cmd/npx.cmd.
+- CI GitHub: người dùng gửi ảnh chụp tab Actions lúc 18:00 18/11 cho thấy các run CI xanh, gồm main commit 7db2793 (PL-104) và các nhánh PL-101..104. Ảnh chỉ hiện trạng thái tổng của từng run, không thấy riêng job Windows/Linux. Chỉ self-review. Trên Windows PowerShell dùng npm.cmd/npx.cmd.
 
 ## Việc tiếp theo — PL-105 (Planned, cần tiêu chí cụ thể)
 
