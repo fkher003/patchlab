@@ -19,9 +19,15 @@ Prototype hoàn tiền tuần tự (buggy/fixed), generator có seed, checker so
 - npm run verify (typecheck, prettier, test) qua, 18/18 test trước khi merge PL-103.
 - CI GitHub Windows/Linux chưa quan sát sau các lần merge này; kiểm tra tab Actions của repo. Chỉ self-review. Trên Windows PowerShell dùng npm.cmd/npx.cmd.
 
-## Việc tiếp theo — PL-104 (Planned, cần quyết định người dùng)
+## Việc tiếp theo — PL-104 (Planned, chờ người dùng chọn case)
 
-Chọn MỘT lỗi công khai có nguồn và giấy phép cho phép dùng lại, tái hiện bằng adapter + check-module. Tiêu chí chọn: logic nhỏ, tuần tự, chạy được không cần dịch vụ ngoài, issue/commit sửa lỗi công khai. Đã thử tìm web một lần (14:00 18/11): chỉ ra bài viết chung về idempotency, KHÔNG có issue/commit cụ thể kiểm chứng được nên chưa chọn case, không bịa nguồn. Cần tìm trực tiếp trên GitHub (issue đã đóng có commit sửa) và đọc giấy phép repo; việc này cần tìm kiếm web và người dùng duyệt case trước khi code. check-module chưa ghi report/repro (có thể cần khi làm PL-104). Lưu ý: reports/ là thư mục git-ignored của người dùng, đừng xóa.
+Browser agent tìm trên GitHub (18/11); tôi đã xác minh ứng viên 1 qua API GitHub (MIT, issue đóng, commit sửa, parent). Hai ứng viên còn lại do browser agent báo, chưa tự xác minh.
+
+1. ĐỀ XUẤT: paveg/hono-idempotency#89 (MIT, 14 sao) — memoryStore({maxSize}) FIFO xóa record đang "processing", cùng khóa chạy 2 lần. Fix: commit 28e0f9e (PR #98), parent dc5c675; file src/stores/memory.ts. Tái hiện: maxSize 1; lock k1, lock k2, lock k1 lại trả true (đáng lẽ false). Phù hợp nhất: logic store thuần, in-memory, đồng bộ về ý nghĩa.
+2. paveg/hono-idempotency#92 — record completed không có response gây 409 không phục hồi (fix 06e4329, parent 532abec). Gắn với middleware Hono.
+3. VilledeMontreal/express-idempotency#34 — 409/417 thành 500 (fix 5835151). Phụ thuộc Express, khó thành adapter.
+
+Cần: tải mã tại parent commit, giữ NOTICE giấy phép MIT, adapter cho store (cần mở rộng contract: khóa/lock thay vì refund), test fail ở parent và pass ở bản fix. Lưu ý: contract hiện tại là refund(), không khớp store.lock(); PL-104 có thể cần thêm một adapter dịch hoặc mô hình thứ hai. Reports/ là thư mục của người dùng, đừng xóa.
 
 ## Điểm cần giữ rõ
 
