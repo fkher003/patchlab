@@ -27,3 +27,7 @@ Giới hạn: nạp module là chạy mã của nó với quyền của bạn; c
 ## Report (PL-103)
 
 Mỗi lần `check` tìm thấy lỗi ghi `reports/<run>/failure.json` và `repro.test.ts`; `<run>` = thời gian UTC + variant + seed + 6 ký tự hex ngẫu nhiên, nên không ghi đè lần trước. `failure.json` có `schema: 2`, `provenance: { tool, version, runId, createdAt, source }`, cùng seed, paid, chuỗi đã rút gọn và failure. `replay` nhận schema 1 (cũ, không provenance) và 2; thiếu hoặc khác schema thì exit 2. `check-module` chưa ghi report.
+
+## Contract kho khóa (PL-104)
+
+`npm run check-store -- file.mjs [seed]` nạp ES module có `export function create({ maxSize })` trả về store bất đồng bộ { get, lock, complete, delete }. Quy tắc và giới hạn: docs/CASE-001.md. Exit 0 / 1 (in chuỗi rút gọn) / 2 như check-module. Chưa ghi report.
