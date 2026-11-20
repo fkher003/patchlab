@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -82,9 +85,12 @@ test('lock-store checker: spec cases and its own failure modes', async () => {
   assert.throws(() => generateStoreOps(-1));
 });
 
-test('CLI check-store: parent exit 1, fixed exit 0, bad adapter exit 2', () => {
+test('CLI check-store: parent exit 1, fixed exit 0, bad adapter exit 2', (t) => {
+  const cwd = mkdtempSync(join(tmpdir(), 'patchlab-store-'));
+  t.after(() => rmSync(cwd, { recursive: true, force: true }));
   const run = (...args: string[]) =>
     spawnSync(process.execPath, [path('../src/cli.ts'), 'check-store', ...args], {
+      cwd,
       encoding: 'utf8',
       timeout: 20000,
     });

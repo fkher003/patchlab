@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'none'; style-src 'unsafe-inline'"
+  /><title>PatchLab failure report</title
+  ><style>
+    body {
+      font: 16px system-ui;
+      max-width: 900px;
+      margin: 48px auto;
+      padding: 0 24px;
+      background: #101820;
+      color: #ecf2f8;
+    }
+    h1 {
+      font-size: 36px;
+    }
+    p {
+      line-height: 1.6;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #1c2936;
+      padding: 24px;
+      border-radius: 12px;
+    }
+    .badge {
+      color: #ffb1a8;
+    }
+    small {
+      color: #abb9c8;
+    }</style
+  ><small>PATCHLAB / REPRODUCIBLE EVIDENCE</small>
+  <h1 class="badge">FAIL: processing-key-lost</h1>
+  <p>Contract: <b>lock-store</b> · Seed: 42<br />Operations reduced: <b>30 → 4</b></p>
+  <h2>Reduced sequence</h2>
+  <pre>
+[
+  {
+    &quot;op&quot;: &quot;lock&quot;,
+    &quot;key&quot;: &quot;k2&quot;
+  },
+  {
+    &quot;op&quot;: &quot;lock&quot;,
+    &quot;key&quot;: &quot;k3&quot;
+  },
+  {
+    &quot;op&quot;: &quot;lock&quot;,
+    &quot;key&quot;: &quot;k4&quot;
+  },
+  {
+    &quot;op&quot;: &quot;get&quot;,
+    &quot;key&quot;: &quot;k2&quot;
+  }
+]</pre
+  >
+  <h2>Source evidence</h2>
+  <pre>
+{
+  &quot;tool&quot;: &quot;patchlab&quot;,
+  &quot;version&quot;: &quot;0.2.0&quot;,
+  &quot;createdAt&quot;: &quot;2026-11-20T08:59:37.777Z&quot;,
+  &quot;runId&quot;: &quot;lock-store-seed42-MvKC1n&quot;,
+  &quot;adapter&quot;: {
+    &quot;name&quot;: &quot;hono-parent.mjs&quot;,
+    &quot;sha256&quot;: &quot;83ce243ad5ed1d5964676f23136f79c83ea10036eead29227b7d5139650513ed&quot;,
+    &quot;scope&quot;: &quot;entry-file-only&quot;
+  }
+}</pre
+  >
+  <p>
+    Hash covers the adapter entry file only, not imported dependencies. A passing replay does not
+    prove universal correctness. This report contains no executable adapter and no tracking scripts.
+  </p>
+</html>

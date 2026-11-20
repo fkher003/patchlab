@@ -1,3 +1,4 @@
+import { performance } from 'node:perf_hooks';
 import { createService } from './refunds.ts';
 import type { Service } from './refunds.ts';
 import { check, minimize } from './checker.ts';
@@ -12,6 +13,7 @@ export type BenchRow = {
   failing: number;
   avgOriginal: number;
   avgMinimized: number;
+  timing?: { checkMs: number; shrinkMs: number };
 };
 
 const PAID = 100000;
@@ -20,10 +22,11 @@ const alwaysReject = (): Service => ({
   refund: () => ({ status: 'exceeds-balance' }),
 });
 
-// Deterministic: seeds 0..n-1, no timing, so the table can be committed and re-derived.
+// Counts are deterministic; optional timings are observations of this environment only.
 export async function runBenchmark(
   n: number,
   stores: { name: string; expected: 'bug' | 'correct'; create: () => LockStore }[] = [],
+  timing = false,
 ): Promise<BenchRow[]> {
   if (!Number.isInteger(n) || n < 1 || n > 5000) throw new Error('n must be an integer in 1..5000');
   const rows: BenchRow[] = [];
@@ -36,37 +39,69 @@ export async function runBenchmark(
     let failing = 0,
       original = 0,
       minimized = 0;
+    let checkMs = 0,
+      shrinkMs = 0;
     for (let seed = 0; seed < n; seed++) {
       const requests = generate(seed);
+      const checkStart = performance.now();
       const failure = check(make(), PAID, requests);
+      checkMs += performance.now() - checkStart;
       if (!failure) continue;
       failing++;
       original += requests.length;
+      const shrinkStart = performance.now();
       minimized += minimize(
         requests,
         (xs) => check(make(), PAID, xs)?.rule === failure.rule,
       ).length;
+      shrinkMs += performance.now() - shrinkStart;
     }
-    rows.push(row(target, expected, n, failing, original, minimized));
+    rows.push(
+      row(
+        target,
+        expected,
+        n,
+        failing,
+        original,
+        minimized,
+        timing ? { checkMs, shrinkMs } : undefined,
+      ),
+    );
   }
   for (const { name, expected, create } of stores) {
     let failing = 0,
       original = 0,
       minimized = 0;
+    let checkMs = 0,
+      shrinkMs = 0;
     for (let seed = 0; seed < n; seed++) {
       const ops = generateStoreOps(seed);
+      const checkStart = performance.now();
       const failure = await checkStore(create, ops);
+      checkMs += performance.now() - checkStart;
       if (!failure) continue;
       failing++;
       original += ops.length;
+      const shrinkStart = performance.now();
       minimized += (
         await minimizeStoreOps(
           ops,
           async (xs) => (await checkStore(create, xs))?.rule === failure.rule,
         )
       ).length;
+      shrinkMs += performance.now() - shrinkStart;
     }
-    rows.push(row(name, expected, n, failing, original, minimized));
+    rows.push(
+      row(
+        name,
+        expected,
+        n,
+        failing,
+        original,
+        minimized,
+        timing ? { checkMs, shrinkMs } : undefined,
+      ),
+    );
   }
   return rows;
 }
@@ -78,9 +113,18 @@ function row(
   failing: number,
   o: number,
   m: number,
+  timing?: { checkMs: number; shrinkMs: number },
 ): BenchRow {
   const avg = (x: number) => (failing ? Math.round((x / failing) * 10) / 10 : 0);
-  return { target, expected, sequences: n, failing, avgOriginal: avg(o), avgMinimized: avg(m) };
+  return {
+    target,
+    expected,
+    sequences: n,
+    failing,
+    avgOriginal: avg(o),
+    avgMinimized: avg(m),
+    ...(timing ? { timing } : {}),
+  };
 }
 
 export function toMarkdown(rows: BenchRow[]): string {
@@ -90,5 +134,16 @@ export function toMarkdown(rows: BenchRow[]): string {
     (r) =>
       `| ${r.target} | ${r.expected} | ${r.sequences} | ${r.failing} | ${((r.failing / r.sequences) * 100).toFixed(1)}% | ${r.avgOriginal} | ${r.avgMinimized} |`,
   );
-  return [head, ...body].join('\n');
+  const standard = [head, ...body].join('\n');
+  if (!rows.some((r) => r.timing)) return standard;
+  return (
+    standard +
+    '\n\n| Target | Check ms | Shrink ms |\n|---|---:|---:|\n' +
+    rows
+      .map(
+        (r) =>
+          `| ${r.target} | ${r.timing?.checkMs.toFixed(3)} | ${r.timing?.shrinkMs.toFixed(3)} |`,
+      )
+      .join('\n')
+  );
 }

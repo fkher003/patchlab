@@ -22,12 +22,20 @@ Checker hiện so sánh status và tổng hoàn với src/model.ts, nên bắt �
 
 `npm run check-module -- đường/dẫn/module.mjs [seed]` nạp một ES module có `export function create(paid)` trả về dịch vụ mới ở mỗi lần gọi: `{ refund({id, amount}) -> {status}, total() -> number }`, đồng bộ, tuần tự. `status` phải thuộc accepted, invalid, conflict, exceeds-balance. Checker xử lý module ném lỗi (service-threw) hoặc trả sai hình dạng (contract-violation) như một lỗi kiểm chứng, không làm crash. Exit: 0 không thấy lỗi trong 100 chuỗi, 1 có lỗi (in chuỗi đã rút gọn), 2 module/tham số sai.
 
-Giới hạn: nạp module là chạy mã của nó với quyền của bạn; chỉ dùng mã tin cậy. Chưa ghi report hoặc regression test cho module ngoài (phần còn thiếu theo dõi ở PL-107). Chưa hỗ trợ async/đồng thời.
+Giới hạn: nạp module là chạy mã của nó với quyền của bạn; chỉ dùng mã tin cậy. Khi tìm lỗi, xuất report schema 3 và regression test (PL-107). Chưa hỗ trợ async/đồng thời.
 
 ## Report (PL-103)
 
-Mỗi lần `check` tìm thấy lỗi ghi `reports/<run>/failure.json` và `repro.test.ts`; `<run>` = thời gian UTC + variant + seed + 6 ký tự hex ngẫu nhiên, nên không ghi đè lần trước. `failure.json` có `schema: 2`, `provenance: { tool, version, runId, createdAt, source }`, cùng seed, paid, chuỗi đã rút gọn và failure. `replay` nhận schema 1 (cũ, không provenance) và 2; thiếu hoặc khác schema thì exit 2. `check-module` chưa ghi report.
+Mỗi lần `check` tìm thấy lỗi ghi `reports/<run>/failure.json` và `repro.test.ts`; `<run>` = thời gian UTC + variant + seed + 6 ký tự hex ngẫu nhiên, nên không ghi đè lần trước. `failure.json` có `schema: 2`, `provenance: { tool, version, runId, createdAt, source }`, cùng seed, paid, chuỗi đã rút gọn và failure. `replay` nhận schema 1 (cũ, không provenance) và 2; thiếu hoặc khác schema thì exit 2. `check-module`/`check-store` dùng report schema 3, mô tả ở phần tiếp theo.
 
 ## Contract kho khóa (PL-104)
 
-`npm run check-store -- file.mjs [seed]` nạp ES module có `export function create({ maxSize })` trả về store bất đồng bộ { get, lock, complete, delete }. Quy tắc và giới hạn: docs/CASE-001.md. Exit 0 / 1 (in chuỗi rút gọn) / 2 như check-module. Chưa ghi report.
+`npm run check-store -- file.mjs [seed]` nạp ES module có `export function create({ maxSize })` trả về store bất đồng bộ { get, lock, complete, delete }. Quy tắc và giới hạn: docs/CASE-001.md. Exit 0 / 1 (in chuỗi rút gọn) / 2 như check-module. Xuất report schema 3 khi có vi phạm.
+
+## External report schema 3 (PL-107)
+
+check-module và check-store xuất failure.json, repro.test.ts và report.html vào thư mục riêng được tạo bằng mkdtemp. Report chứa contract, config (paid/maxSize), seed, operations đã rút gọn, originalLength, failure và provenance (tool/version/time/runId, tên adapter và SHA-256). Hash chỉ bao phủ file adapter đầu vào, không bao phủ dependency nhập vào.
+
+replay-external yêu cầu report và đường dẫn adapter tin cậy do người dùng chọn rõ. Validate dữ liệu và hash trước import. Khác hash mặc định exit 2; --allow-changed là lựa chọn rõ ràng để thử bản sửa. Report không tự chọn mã để chạy. Regression test yêu cầu PATCHLAB_ADAPTER; PATCHLAB_ALLOW_CHANGED=1 cho phép bản sửa khác hash. Report HTML tĩnh, escape dữ liệu, không script. Report cũ schema 1/2 vẫn dùng lệnh replay cho builtin.
+
+Benchmark --timing thêm thời gian check và shrink; generator không tính trong check, thời gian includes model/service creation, không warmup. Counts giữ xác định; timing thay đổi theo môi trường.

@@ -24,7 +24,13 @@ export type LockStore = {
 export type StoreFactory = () => LockStore | Promise<LockStore>;
 export type StoreOp = { op: 'lock' | 'complete' | 'delete' | 'get'; key: string };
 export type StoreFailure = {
-  rule: 'processing-key-relocked' | 'processing-key-lost' | 'new-key-lock-refused' | 'store-threw';
+  rule:
+    | 'processing-key-relocked'
+    | 'processing-key-lost'
+    | 'new-key-lock-refused'
+    | 'store-threw'
+    | 'store-contract-violation'
+    | 'processing-state-changed';
   step: number;
   operation: StoreOp;
   detail: string;
@@ -63,6 +69,8 @@ export async function checkStore(
           status: 'processing',
           createdAt: Date.now(),
         });
+        if (typeof got !== 'boolean')
+          return fail('store-contract-violation', 'lock() must return boolean');
         if (processing.has(key) && got)
           return fail('processing-key-relocked', 'lock succeeded on a key still processing');
         if (!seen.has(key) && !got)
@@ -78,8 +86,18 @@ export async function checkStore(
         seen.delete(key);
       } else {
         const found = await store.get(key);
+        if (
+          found !== undefined &&
+          (found === null || typeof found !== 'object' || typeof found.status !== 'string')
+        )
+          return fail('store-contract-violation', 'get() must return undefined or a status record');
         if (processing.has(key) && !found)
           return fail('processing-key-lost', 'get() lost a key that is still processing');
+        if (processing.has(key) && found?.status !== 'processing')
+          return fail(
+            'processing-state-changed',
+            'get() changed processing status without complete/delete',
+          );
       }
     } catch (error) {
       return fail('store-threw', String(error));
@@ -92,6 +110,7 @@ export async function checkStore(
 export function generateStoreOps(seed: number, count = 30): StoreOp[] {
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff)
     throw new Error('Seed must be an unsigned 32-bit integer');
+  if (!Number.isInteger(count) || count < 0 || count > 10000) throw new Error('Invalid count');
   let state = seed >>> 0;
   const next = () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0);
   const kinds: StoreOp['op'][] = ['lock', 'lock', 'lock', 'complete', 'delete', 'get'];

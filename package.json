@@ -1,9 +1,9 @@
 {
   "name": "patchlab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Learning prototype: reproducible refund invariant checks",
+  "description": "Model-based logic checks with minimized counterexamples and replayable evidence",
   "engines": {
     "node": ">=24.12.0"
   },
@@ -19,7 +19,10 @@
     "format": "prettier --write .",
     "verify": "npm run typecheck && npm run format:check && npm test",
     "check-store": "node src/cli.ts check-store",
-    "benchmark": "node src/cli.ts benchmark"
+    "benchmark": "node src/cli.ts benchmark",
+    "replay-external": "node src/cli.ts replay-external",
+    "benchmark:timing": "node src/cli.ts benchmark 500 --timing",
+    "showcase": "node scripts/showcase.mjs"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

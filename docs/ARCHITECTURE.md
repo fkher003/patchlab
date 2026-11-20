@@ -41,10 +41,14 @@ Contract adapter → generator và engine độc lập → model tham chiếu �
 
 ## Tin cậy và dữ liệu
 
-Report là dữ liệu đầu vào, phải validate trước replay. Replay hiện nhận schema 1/2 và từ chối phiên bản lạ (PL-103). Report/test xuất ra mới áp dụng cho service mẫu; module ngoài và store chưa có luồng report/replay (PL-107). Test tích hợp dùng thư mục tạm để không ghi đè báo cáo của người học. Không đưa token, .env hoặc dữ liệu khách hàng vào repository. CI chỉ cần quyền đọc nội dung và không cần API key.
+Report là dữ liệu đầu vào, phải validate trước replay. Replay hiện nhận schema 1/2 và từ chối phiên bản lạ (PL-103). Builtin dùng schema 1/2; module ngoài và store dùng schema 3 qua external-report.ts. Replay external yêu cầu adapter được chọn rõ, validate metadata/hash trước import. Test tích hợp dùng thư mục tạm để không ghi đè báo cáo của người học. Không đưa token, .env hoặc dữ liệu khách hàng vào repository. CI chỉ cần quyền đọc nội dung và không cần API key.
 
 ## Phân biệt hai đường chạy
 
-- Hoàn tiền: generator → checker + model tham chiếu → service mẫu hoặc adapter. CLI chỉ xuất report/test cho service mẫu.
-- Kho khóa: generateStoreOps → checkStore → store adapter. CLI hiện in chuỗi lỗi đã rút gọn; chưa xuất report/test.
-- benchmark.ts chạy các target trên tập seed, tính số chuỗi vi phạm và độ dài rút gọn; chưa đo thời gian.
+- Hoàn tiền: generator → checker + model tham chiếu → service mẫu hoặc adapter. CLI xuất report/test cho cả service mẫu lẫn adapter ngoài.
+- Kho khóa: generateStoreOps → checkStore → store adapter. CLI in chuỗi lỗi đã rút gọn và xuất report/test/HTML.
+- benchmark.ts chạy các target trên tập seed, tính số chuỗi vi phạm và độ dài rút gọn; có tùy chọn --timing tách check/shrink, không coi timing là xác định.
+
+## External evidence (0.2.0)
+
+external-report.ts quản lý validate schema 3, provenance, replay adapter được chỉ định, JSON/HTML và regression export. SHA-256 chỉ bao phủ file entry adapter, không dependency; việc thay dependency có thể làm replay khác kết quả dù entry hash giữ nguyên. HTML escape dữ liệu và không script. Run directory được tạo độc nhất bằng mkdtemp.

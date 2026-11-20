@@ -1,4 +1,4 @@
-﻿# Benchmark (PL-105, phần đo)
+# Benchmark (PL-105, phần đo)
 
 Lệnh: `npm.cmd run benchmark -- 500` (seed 0..499, mỗi chuỗi 30 thao tác; xác định, không đo thời gian). Exit 0 nếu mọi mục "correct" không báo lỗi và mọi mục "bug" bị phát hiện ít nhất một lần.
 
@@ -19,3 +19,17 @@ Cách đọc: cột Detected của mục _correct_ chính là tỉ lệ báo nh�
 - Chưa có phản hồi người dùng thử: xem docs/FEEDBACK.md.
 
 Đối chiếu lại bởi Codex ngày 18/11/2026 tại db2d905: benchmark 500 seed khớp bảng trên. Độ dài trung bình chỉ tính trên các chuỗi bị phát hiện lỗi; giá trị 0 ở target không lỗi không có nghĩa chuỗi đầu vào dài 0. Đây là phép đo trên tập sinh đã chọn, không phải sensitivity/specificity của một bộ phân loại lỗi tổng quát.
+
+## Timing quan sát ngày 20/11/2026
+
+Lệnh npm run benchmark:timing, Node v24.22.1, win32/x64 10.0.26200, Intel Core i5-12500H. Một lần chạy, không warmup. Thời gian check tính tạo service/model và chạy checker, không tính generator. Shrink tính cả các lần kiểm lại khi xóa thao tác. Không so sánh tốc độ với công cụ khác từ số này.
+
+| Target               | Check ms | Shrink ms |
+| -------------------- | -------: | --------: |
+| refund fixed         |    6.149 |     0.000 |
+| refund buggy         |    0.642 |    27.500 |
+| refund always-reject |    0.301 |     9.828 |
+| store fixed          |    9.789 |     0.000 |
+| store parent         |    3.724 |   100.551 |
+
+Counts vẫn khớp bảng 500 seed ở trên; thời gian các lần chạy sau sẽ khác. Test chỉ kiểm hữu hạn/không âm và không làm đổi counts.

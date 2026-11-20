@@ -37,7 +37,7 @@ Acceptance criteria:
 
 ### PL-102 — Done
 
-Contract và tiêu chí chấp nhận nằm ở docs/SPEC.md mục Adapter. Test: test/adapter.test.ts (module tốt qua, reject-all bị bắt, ném lỗi/sai hình dạng thành failure, module không hợp lệ exit 2, không ghi report).
+Contract và tiêu chí chấp nhận nằm ở docs/SPEC.md mục Adapter. Test: test/adapter.test.ts (module tốt qua, reject-all bị bắt, ném lỗi/sai hình dạng thành failure, module không hợp lệ exit 2; từ PL-107 có ghi report schema 3).
 
 ### PL-103 — Done
 
@@ -57,7 +57,7 @@ Tiêu chí: benchmark xác định trên bản đúng/bản lỗi (docs/BENCHMAR
 
 Tiêu chí: SPEC/ARCHITECTURE/PRODUCT khớp implementation; số target benchmark chính xác; hướng dẫn mới dùng lệnh/kết quả đã chạy; giữ trạng thái phản hồi thật chưa có. Code không đổi. Đã đối chiếu 24 test, demo, hai store và benchmark 500 seed trên Windows. Chờ tích hợp nhánh docs/PL-106-handoff-learning.
 
-### PL-107 — Ready: report và replay cho adapter ngoài
+### PL-107 — Review: report và replay cho adapter ngoài
 
 Ưu tiên P1, phụ thuộc PL-102/103/104. Đây là khoảng thiếu của MVP, không phải chỉ thêm tính năng phụ.
 
@@ -68,6 +68,10 @@ Tiêu chí: SPEC/ARCHITECTURE/PRODUCT khớp implementation; số target benchma
 - Mã ngoài vẫn phải đáng tin cậy; chưa tuyên bố sandbox. Quy định rõ hash bao phủ adapter hay cả dependency, không hứa hơn implementation.
 - Trước code cập nhật thiết kế report trong SPEC; sau code chạy verify và test CLI, cập nhật tài liệu.
 
-### PL-108 — Planned: đo thời gian benchmark
+### PL-108 — Review: đo thời gian benchmark
 
-Ưu tiên P2. Hoàn thiện tiêu chí thời gian trong PRODUCT: tách thời gian thực thi và rút gọn, ghi môi trường/phiên bản, không assert thời gian chính xác trong test. Chuyển Ready sau khi chốt định dạng báo cáo. Không dùng timing làm cam kết tốc độ chung.
+Ưu tiên P2. Hoàn thiện tiêu chí thời gian trong PRODUCT: tách thời gian thực thi và rút gọn, ghi môi trường/phiên bản, không assert thời gian chính xác trong test. Đã triển khai --timing với hai cột Check ms/Shrink ms và môi trường; test mọi target có số đo hữu hạn. Không dùng timing làm cam kết tốc độ chung.
+
+## Kết quả phiên portfolio 20/11/2026
+
+PL-107 và PL-108 đã đạt phần triển khai/test local trên feat/portfolio-ready. PL-109 (Review): gói showcase, HTML evidence, README/CV/changelog. Test toàn bộ gồm 30 trường hợp. PL-105 vẫn chưa Done vì không có feedback thật. PL-106 vẫn Review do nhánh chưa merge. CI cần kiểm tra theo commit mới; không suy từ lần trước.

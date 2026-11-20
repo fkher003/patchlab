@@ -1,3 +1,4 @@
+import { cpus, release } from 'node:os';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
@@ -6,7 +7,13 @@ import type { Request, Variant } from './refunds.ts';
 import { check, minimize } from './checker.ts';
 import { generate } from './generator.ts';
 import { loadAdapter } from './adapter.ts';
-import { pathToFileURL } from 'node:url';
+import {
+  readExternalReport,
+  replayExternal,
+  hashAdapter,
+  loadStoreAdapter,
+  writeExternalReport,
+} from './external-report.ts';
 import { checkStore, generateStoreOps, minimizeStoreOps } from './lockstore.ts';
 import type { LockStore } from './lockstore.ts';
 import { runBenchmark, toMarkdown } from './benchmark.ts';
@@ -54,7 +61,31 @@ function replayData(value: unknown): { paid: number; requests: Request[] } {
 }
 
 async function main() {
-  const [command, arg, seedArg] = process.argv.slice(2);
+  const [command, arg, seedArg, extra] = process.argv.slice(2);
+  if (process.argv.length > 6) throw new Error('Too many arguments');
+  if (extra && !(command === 'replay-external' && extra === '--allow-changed'))
+    throw new Error('Unknown option');
+  if (command === 'help' || command === '--help' || !command) {
+    console.log(
+      'PatchLab: demo | check buggy|fixed [seed] | check-module file [seed] | check-store file [seed] | replay file [variant] | replay-external report trusted-adapter [--allow-changed] | benchmark [n] [--timing]',
+    );
+    console.log(
+      'Exit codes: 0 no violation found; 1 violation found; 2 usage/input error. External modules run with your privileges.',
+    );
+    return;
+  }
+  if (command === 'replay-external') {
+    if (!arg || !seedArg)
+      throw new Error('Usage: replay-external report.json trusted-adapter [--allow-changed]');
+    const failure = await replayExternal(
+      readExternalReport(arg),
+      seedArg,
+      extra === '--allow-changed',
+    );
+    console.log(failure ?? 'PASS for recorded sequence only');
+    process.exitCode = failure ? 1 : 0;
+    return;
+  }
   if (command === 'demo') {
     const requests = [
       { id: 'request-01', amount: 30000 },
@@ -84,12 +115,15 @@ async function main() {
   }
   if (command === 'check-module') {
     if (!arg) throw new Error('Usage: check-module file.mjs [seed]');
-    const factory = await loadAdapter(resolve(arg));
+    const adapterFile = resolve(arg);
+    const adapterHash = hashAdapter(adapterFile);
+    const factory = await loadAdapter(adapterFile);
     const startSeed = seedArg === undefined ? 42 : Number(seedArg);
     generate(startSeed, 0);
     const paid = 100000;
     for (let trial = 0; trial < 100; trial++) {
-      const original = generate((startSeed + trial) >>> 0);
+      const seed = (startSeed + trial) >>> 0;
+      const original = generate(seed);
       const failure = check(factory(paid), paid, original);
       if (!failure) continue;
       const fails = (xs: Request[]) => check(factory(paid), paid, xs)?.rule === failure.rule;
@@ -97,6 +131,19 @@ async function main() {
       console.log(`FAIL ${failure.rule}; ${original.length} -> ${requests.length} operations`);
       console.log(JSON.stringify(check(factory(paid), paid, requests), null, 2));
       console.log(JSON.stringify(requests));
+      const paths = writeExternalReport({
+        contract: 'refund',
+        seed,
+        config: { paid },
+        operations: requests,
+        originalLength: original.length,
+        failure: check(factory(paid), paid, requests)!,
+        adapter: adapterFile,
+        adapterHash,
+      });
+      console.log(
+        `Report: ${paths.reportPath}\nRegression test: ${paths.testPath}\nHTML: ${paths.htmlPath}`,
+      );
       process.exitCode = 1;
       return;
     }
@@ -105,6 +152,9 @@ async function main() {
   }
   if (command === 'benchmark') {
     const n = arg === undefined ? 500 : Number(arg);
+    if (seedArg !== undefined && seedArg !== '--timing')
+      throw new Error('Usage: benchmark [n] [--timing]');
+    const timing = seedArg === '--timing';
     const load = async (file: string) =>
       (
         (await import(new URL(`../examples/${file}`, import.meta.url).href)) as {
@@ -113,33 +163,40 @@ async function main() {
       ).create;
     const parent = await load('hono-parent.mjs');
     const fixed = await load('hono-fixed.mjs');
-    const rows = await runBenchmark(n, [
-      {
-        name: 'hono-idempotency memoryStore fixed (28e0f9e)',
-        expected: 'correct',
-        create: () => fixed({ maxSize: 2 }),
-      },
-      {
-        name: 'hono-idempotency memoryStore parent (dc5c675, issue #89)',
-        expected: 'bug',
-        create: () => parent({ maxSize: 2 }),
-      },
-    ]);
+    const rows = await runBenchmark(
+      n,
+      [
+        {
+          name: 'hono-idempotency memoryStore fixed (28e0f9e)',
+          expected: 'correct',
+          create: () => fixed({ maxSize: 2 }),
+        },
+        {
+          name: 'hono-idempotency memoryStore parent (dc5c675, issue #89)',
+          expected: 'bug',
+          create: () => parent({ maxSize: 2 }),
+        },
+      ],
+      timing,
+    );
     console.log(toMarkdown(rows));
+    if (timing)
+      console.log(
+        `Environment: Node ${process.version}; ${process.platform}/${process.arch} ${release()}; CPU ${cpus()[0]?.model ?? 'unknown'}; timings include model/check work; no warmup, not a performance guarantee.`,
+      );
     process.exitCode = rows.some((r) => (r.expected === 'correct') !== (r.failing === 0)) ? 1 : 0;
     return;
   }
   if (command === 'check-store') {
     if (!arg) throw new Error('Usage: check-store file.mjs [seed]');
-    const mod: unknown = await import(pathToFileURL(resolve(arg)).href);
-    const create = (mod as { create?: unknown } | null)?.create;
-    if (typeof create !== 'function')
-      throw new Error('Adapter must export function create(options)');
-    const factory = () => create({ maxSize: 2 }) as LockStore;
+    const adapterFile = resolve(arg);
+    const adapterHash = hashAdapter(adapterFile);
+    const factory = await loadStoreAdapter(adapterFile, 2);
     const startSeed = seedArg === undefined ? 42 : Number(seedArg);
     generateStoreOps(startSeed, 0);
     for (let trial = 0; trial < 100; trial++) {
-      const original = generateStoreOps((startSeed + trial) >>> 0);
+      const seed = (startSeed + trial) >>> 0;
+      const original = generateStoreOps(seed);
       const failure = await checkStore(factory, original);
       if (!failure) continue;
       const ops = await minimizeStoreOps(
@@ -151,6 +208,19 @@ async function main() {
       );
       console.log(JSON.stringify(await checkStore(factory, ops), null, 2));
       console.log(JSON.stringify(ops));
+      const paths = writeExternalReport({
+        contract: 'lock-store',
+        seed,
+        config: { maxSize: 2 },
+        operations: ops,
+        originalLength: original.length,
+        failure: (await checkStore(factory, ops))!,
+        adapter: adapterFile,
+        adapterHash,
+      });
+      console.log(
+        `Report: ${paths.reportPath}\nRegression test: ${paths.testPath}\nHTML: ${paths.htmlPath}`,
+      );
       process.exitCode = 1;
       return;
     }
