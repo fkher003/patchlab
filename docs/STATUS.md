@@ -4,7 +4,7 @@ Cập nhật 20/11/2026, Asia/Saigon.
 
 ## Phiên và checkout
 
-- Trạng thái: Working — Codex đang chốt kiểm chứng và đồng bộ GitHub.
+- Trạng thái: Handoff ready — Codex đã hoàn thành bản portfolio v0.2.0 trên nhánh.
 - Local: D:/Projects/patchlab. Nhánh feat/portfolio-ready; base 9e7dfa6 (PL-106), main trước đó db2d905.
 - Người dùng yêu cầu hoàn thiện bản đưa vào CV trước, học sau. Không dừng công việc để giao bài tập.
 - Không merge hoặc đổi quyền riêng tư repo. Tra git log lấy commit hiện tại.
@@ -19,7 +19,7 @@ Cập nhật 20/11/2026, Asia/Saigon.
 
 ## Kiểm chứng
 
-Full npm run verify đã qua: typecheck, format và 30/30 test, gồm CLI ngoài checkout. CI của commit mới cần quan sát riêng trước khi khẳng định thành công.
+Full npm run verify đã qua: typecheck, format và 30/30 test, gồm CLI ngoài checkout. CI commit 5f92966 đã qua trên Windows và Ubuntu: https://github.com/fkher003/patchlab/actions/runs/44761727643. Self-review đã thực hiện; chưa có review độc lập.
 
 Showcase đã qua: upstream parent FAIL, cùng chuỗi trên fixed PASS, regression xuất ra PASS. Benchmark 500 seed: refund buggy 499 lỗi, always-reject 500, store parent 431; hai fixed 0. Timing quan sát và môi trường ghi trong BENCHMARK.md. Counts không đổi sau thêm timing.
 
@@ -27,7 +27,7 @@ Showcase đã qua: upstream parent FAIL, cùng chuỗi trên fixed PASS, regress
 
 - PL-105 vẫn thiếu feedback thật; không bịa hoặc coi AI test là người dùng ngoài.
 - PL-106/107/108/109 ở Review đến khi tích hợp main. Chỉ merge khi được người dùng cấp quyền phù hợp.
-- Theo dõi CI của nhánh portfolio; nếu thất bại sửa trên cùng nhánh. Chuẩn bị PR và gói source archive khi kiểm chứng xong.
+- Draft PR #2: https://github.com/fkher003/patchlab/pull/2. Bước tiếp theo: review PR, lấy feedback thật theo docs/FEEDBACK.md và chỉ tích hợp main khi được cấp quyền. Code đã push; gói source được tạo từ HEAD sau cập nhật bàn giao.
 - Bản này có thể trình bày như project cá nhân có AI hỗ trợ, chưa production hoặc có người dùng. CV.md ghi đúng phạm vi; chưa xác nhận người dùng hiểu code.
 
 ## Giới hạn
