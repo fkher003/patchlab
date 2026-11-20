@@ -66,7 +66,7 @@ Exit 0 = chưa thấy vi phạm trong phạm vi chạy; 1 = tìm vi phạm; 2 = 
 
 Benchmark 500 seed/target: refund buggy 499 chuỗi có lỗi, always-reject 500, upstream parent 431; hai target đã sửa không báo vi phạm trong tập này. Một chuỗi upstream cụ thể rút từ 30 xuống 4 thao tác. Xem [phương pháp và thời gian đo](docs/BENCHMARK.md).
 
-- 30 test ở bản chuẩn bị v0.2.0, gồm CLI, model, adapter contract, hash/metadata, regression export và timing. Lệnh verify là bằng chứng hiện hành nếu số test thay đổi.
+- 31 test ở bản chuẩn bị v0.2.0, gồm CLI, model, adapter contract, hash/metadata, regression export, showcase end-to-end và timing. Lệnh verify là bằng chứng hiện hành nếu số test thay đổi.
 - Một lỗi công khai, hai bản lỗi hoàn tiền mô phỏng; không suy rộng tỷ lệ phát hiện ra mọi phần mềm.
 - Shrinker chỉ đạt mức không thể bỏ riêng một thao tác nữa, không bảo đảm tối thiểu toàn cục.
 - Chưa kiểm TTL, crash, concurrency, database thật hoặc code không tin cậy.
@@ -81,7 +81,7 @@ src/model.ts mô tả kết quả hoàn tiền kỳ vọng; checker.ts quan sát
 
 ## Học và cộng tác
 
-[Hướng dẫn 15 phút](docs/QUICKSTART-LEARNING.md) · [SPEC](docs/SPEC.md) · [BACKLOG](docs/BACKLOG.md) · [STATUS](docs/STATUS.md) · [Nội dung CV](docs/CV.md).
+[Hướng dẫn 15 phút](docs/QUICKSTART-LEARNING.md) · [Buổi học 1](docs/LESSON-01.md) · [Buổi học 2](docs/LESSON-02.md) · [SPEC](docs/SPEC.md) · [BACKLOG](docs/BACKLOG.md) · [STATUS](docs/STATUS.md) · [Nội dung CV](docs/CV.md).
 
 AI tiếp tục đọc AGENTS.md và STATUS.md, kiểm tra Git trước khi sửa. Một AI ghi checkout tại một thời điểm. Repository giữ private; nhà tuyển dụng không tự truy cập được link private — cung cấp demo hoặc quyền truy cập phù hợp khi bạn quyết định chia sẻ.
 

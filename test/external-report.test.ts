@@ -108,6 +108,7 @@ test('schema 3 external reports replay both contracts, preserve runs, and genera
       { ...report, contract: 'other' },
       { ...report, config: {} },
       { ...report, operations: [{}] },
+      { ...report, operations: [] },
       { ...report, originalLength: -1 },
     ];
     for (const data of malformed) {
@@ -119,13 +120,22 @@ test('schema 3 external reports replay both contracts, preserve runs, and genera
       );
       assert.equal(existsSync(join(root, 'executed.txt')), false);
     }
-    // Report HTML must never turn user strings into markup or scripts.
+    // An adapter exporting create() that returns an invalid contract exits 2 on check-module / check-store.
+    writeFileSync(join(root, 'bad-contract.mjs'), 'export const create = () => ({});');
+    assert.equal(run(['src/cli.ts', c.command, 'bad-contract.mjs']).status, 2);
+    assert.equal(run(['src/cli.ts', c.command, c.bad, '']).status, 2);
+    // Report HTML must never turn user strings into markup or scripts, and includes failure + config.
     const malicious = structuredClone(report);
     malicious.provenance.adapter.name = '<script>alert(1)</script>';
     const html = renderReport(malicious);
     assert.ok(!html.includes('<script>'));
     assert.ok(html.includes('&lt;script&gt;'));
+    assert.ok(html.includes('Observed failure'));
+    assert.ok(html.includes('Config:'));
   }
+  assert.equal(run(['src/cli.ts', 'benchmark', '5', '--timing']).status, 0);
+  assert.equal(run(['src/cli.ts', 'benchmark', '--timing', '5']).status, 2);
+  assert.equal(run(['src/cli.ts', 'benchmark', '']).status, 2);
 });
 
 test('benchmark timing is finite and nonnegative without changing deterministic counts', async () => {

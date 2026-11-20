@@ -46,6 +46,7 @@ export function validateExternalReport(value: unknown): ExternalReport {
     !integer(d.seed, 0, 0xffffffff) ||
     !record(d.config) ||
     !Array.isArray(d.operations) ||
+    d.operations.length === 0 ||
     d.operations.length > 10000 ||
     !integer(d.originalLength, d.operations.length, 10000) ||
     !record(d.failure) ||
@@ -104,7 +105,7 @@ export async function loadStoreAdapter(file: string, maxSize: number): Promise<S
   if (!record(mod) || typeof mod.create !== 'function')
     throw new Error('Adapter must export function create(options)');
   const create = mod.create;
-  return async () => {
+  const make = async (): Promise<LockStore> => {
     const s: unknown = await create({ maxSize });
     if (
       !record(s) ||
@@ -113,6 +114,8 @@ export async function loadStoreAdapter(file: string, maxSize: number): Promise<S
       throw new Error('Invalid lock-store contract');
     return s as LockStore;
   };
+  await make();
+  return make;
 }
 
 export async function replayExternal(
@@ -142,7 +145,7 @@ const escapeHtml = (x: unknown) =>
   );
 export function renderReport(report: ExternalReport): string {
   const r = validateExternalReport(report);
-  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>PatchLab failure report</title><style>body{font:16px system-ui;max-width:900px;margin:48px auto;padding:0 24px;background:#101820;color:#ecf2f8}h1{font-size:36px}p{line-height:1.6}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1c2936;padding:24px;border-radius:12px}.badge{color:#ffb1a8}small{color:#abb9c8}</style><small>PATCHLAB / REPRODUCIBLE EVIDENCE</small><h1 class="badge">FAIL: ${escapeHtml(r.failure.rule)}</h1><p>Contract: <b>${escapeHtml(r.contract)}</b> · Seed: ${r.seed}<br>Operations reduced: <b>${r.originalLength} → ${r.operations.length}</b></p><h2>Reduced sequence</h2><pre>${escapeHtml(JSON.stringify(r.operations, null, 2))}</pre><h2>Source evidence</h2><pre>${escapeHtml(JSON.stringify(r.provenance, null, 2))}</pre><p>Hash covers the adapter entry file only, not imported dependencies. A passing replay does not prove universal correctness. This report contains no executable adapter and no tracking scripts.</p></html>`;
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>PatchLab failure report</title><style>body{font:16px system-ui;max-width:900px;margin:48px auto;padding:0 24px;background:#101820;color:#ecf2f8}h1{font-size:36px}p{line-height:1.6}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1c2936;padding:24px;border-radius:12px}.badge{color:#ffb1a8}small{color:#abb9c8}</style><small>PATCHLAB / REPRODUCIBLE EVIDENCE</small><h1 class="badge">FAIL: ${escapeHtml(r.failure.rule)}</h1><p>Contract: <b>${escapeHtml(r.contract)}</b> · Seed: ${r.seed} · Config: <code>${escapeHtml(JSON.stringify(r.config))}</code><br>Operations reduced: <b>${r.originalLength} → ${r.operations.length}</b></p><h2>Observed failure</h2><pre>${escapeHtml(JSON.stringify(r.failure, null, 2))}</pre><h2>Reduced sequence</h2><pre>${escapeHtml(JSON.stringify(r.operations, null, 2))}</pre><h2>Source evidence</h2><pre>${escapeHtml(JSON.stringify(r.provenance, null, 2))}</pre><p>Hash covers the adapter entry file only, not imported dependencies. A passing replay does not prove universal correctness. This report contains no executable adapter and no tracking scripts.</p></html>`;
 }
 
 export function writeExternalReport(input: {

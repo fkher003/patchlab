@@ -34,7 +34,22 @@
     }</style
   ><small>PATCHLAB / REPRODUCIBLE EVIDENCE</small>
   <h1 class="badge">FAIL: processing-key-lost</h1>
-  <p>Contract: <b>lock-store</b> · Seed: 42<br />Operations reduced: <b>30 → 4</b></p>
+  <p>
+    Contract: <b>lock-store</b> · Seed: 42 · Config: <code>{&quot;maxSize&quot;:2}</code
+    ><br />Operations reduced: <b>30 → 4</b>
+  </p>
+  <h2>Observed failure</h2>
+  <pre>
+{
+  &quot;rule&quot;: &quot;processing-key-lost&quot;,
+  &quot;step&quot;: 3,
+  &quot;operation&quot;: {
+    &quot;op&quot;: &quot;get&quot;,
+    &quot;key&quot;: &quot;k2&quot;
+  },
+  &quot;detail&quot;: &quot;get() lost a key that is still processing&quot;
+}</pre
+  >
   <h2>Reduced sequence</h2>
   <pre>
 [

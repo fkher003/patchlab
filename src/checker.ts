@@ -35,16 +35,30 @@ export function check(service: Service, paid: number, requests: Request[]): Fail
       result = service.refund({ ...request });
       after = service.total();
     } catch {
-      return { rule: 'service-threw', step, request, before, after: before, status: 'threw' };
+      const safeBefore = Number.isSafeInteger(before) ? before : 0;
+      return {
+        rule: 'service-threw',
+        step,
+        request,
+        before: safeBefore,
+        after: safeBefore,
+        status: 'threw',
+      };
     }
-    if (!result || !STATUSES.includes(result.status))
+    if (
+      !result ||
+      typeof result !== 'object' ||
+      !STATUSES.includes(result.status) ||
+      !Number.isSafeInteger(before) ||
+      !Number.isSafeInteger(after)
+    )
       return {
         rule: 'contract-violation',
         step,
         request,
-        before,
-        after,
-        status: String(result?.status),
+        before: Number.isSafeInteger(before) ? before : -1,
+        after: Number.isSafeInteger(after) ? after : -1,
+        status: String((result as { status?: unknown } | null)?.status),
       };
     const expected = model.apply(request);
     const fail = (rule: Failure['rule']): Failure => ({

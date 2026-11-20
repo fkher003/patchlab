@@ -25,6 +25,16 @@ test('adapter: throwing and malformed services become failures, not crashes', as
   assert.equal(check(badShape, 10, [{ id: 'a', amount: 1 }])?.rule, 'contract-violation');
   const noResult = { total: () => 0, refund: () => undefined as never };
   assert.equal(check(noResult, 10, [{ id: 'a', amount: 1 }])?.rule, 'contract-violation');
+  for (const badTotal of ['0', NaN, Infinity, 1.5, null, undefined]) {
+    const badTotalService = {
+      total: () => badTotal as never,
+      refund: () => ({ status: 'invalid' as const }),
+    };
+    const failure = check(badTotalService, 10, [{ id: ' ', amount: 1 }]);
+    assert.equal(failure?.rule, 'contract-violation');
+    assert.ok(Number.isSafeInteger(failure?.before));
+    assert.ok(Number.isSafeInteger(failure?.after));
+  }
 });
 
 test('adapter: invalid modules are rejected with clear errors', async () => {

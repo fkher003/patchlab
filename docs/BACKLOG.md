@@ -12,6 +12,11 @@
 | PL-103 | P1      | Report có version, provenance, output riêng từng run  | Done       | PL-102         |
 | PL-104 | P1      | Tái hiện một lỗi công khai có nguồn và giấy phép      | Done       | PL-102, PL-103 |
 | PL-105 | P1      | Benchmark bản lỗi/bản đúng và phản hồi người dùng thử | Review     | PL-104         |
+| PL-106 | P2      | Đồng bộ tài liệu và hướng dẫn học 15 phút             | Review     | PL-105         |
+| PL-107 | P1      | Report schema 3 và replay cho adapter ngoài           | Review     | PL-102..104    |
+| PL-108 | P2      | Đo thời gian benchmark tách check và shrink           | Review     | PL-105         |
+| PL-109 | P1      | Showcase một lệnh, HTML evidence, README/CV/DEMO      | Review     | PL-107, PL-108 |
+| PL-110 | P1      | Review độc lập PR #2, hardening contract/CLI & bài 2  | Review     | PL-107..109    |
 
 ## Sprint 0 — Nền móng
 
@@ -74,4 +79,20 @@ Tiêu chí: SPEC/ARCHITECTURE/PRODUCT khớp implementation; số target benchma
 
 ## Kết quả phiên portfolio 20/11/2026
 
-PL-107 và PL-108 đã đạt phần triển khai/test local trên feat/portfolio-ready. PL-109 (Review): gói showcase, HTML evidence, README/CV/changelog. Test toàn bộ gồm 30 trường hợp. PL-105 vẫn chưa Done vì không có feedback thật. PL-106 vẫn Review do nhánh chưa merge. CI cần kiểm tra theo commit mới; không suy từ lần trước.
+PL-107 và PL-108 đã đạt phần triển khai/test local trên feat/portfolio-ready. PL-109 (Review): gói showcase, HTML evidence, README/CV/changelog.
+
+### PL-110 — Review: review độc lập PR #2, hardening contract/CLI/report và bài học Buổi 2
+
+Ưu tiên P1, phụ thuộc PL-107/108/109.
+
+- Review độc lập toàn bộ diff PR #2 (`9e7dfa6..e3dd6e1`): xác nhận kiến trúc external report schema 3, SHA-256 entry-file provenance trước `import()`, regression cross-drive và benchmark timing của Codex hoạt động tốt.
+- Sửa 6 điểm biên phát hiện khi review:
+  1. `loadAdapter` và `loadStoreAdapter` kiểm tra hình dạng đối tượng trả về từ `create()` ngay khi nạp để module trả `{}` thoát với exit 2 thay vì bị `checkStore` bắt thành `store-threw` (exit 1, rút gọn về 0 thao tác).
+  2. `checker.ts` phân loại `total()` trả giá trị không phải số nguyên an toàn (`NaN`, chuỗi, `undefined`, số thực) hoặc `refund()` trả kiểu nguyên thủy là `contract-violation` với `before`/`after` luôn là số nguyên hữu hạn.
+  3. `replay` (schema 1/2) và `replay-external` (schema 3) từ chối report có mảng thao tác rỗng (`requests: []` / `operations: []`) với exit 2 để không báo PASS giả.
+  4. CLI hỗ trợ `benchmark --timing` (không cần truyền `n`), từ chối chuỗi rỗng/khoảng trắng cho tham số số (`seed`, `n`) và tham số thừa ở `demo`/`help`.
+  5. `renderReport` và `docs/evidence/case001-report.html` hiển thị thêm `Config` và `Observed failure` (bước lỗi, thao tác và chi tiết vi phạm).
+  6. `scripts/showcase.mjs` dùng đường dẫn tuyệt đối cho adapter và chạy trên `process.cwd()`, thêm test tự động chạy toàn bộ showcase trong thư mục tạm (tổng 31/31 test).
+- Thêm `docs/LESSON-02.md` (Buổi 2 — CASE-001, shrinking 1-minimal, SHA-256 provenance và 4 câu hỏi phỏng vấn thực hành) để người dùng học sâu sau khi hoàn thiện code.
+
+PL-105 vẫn chưa Done vì không có feedback thật. PL-106..110 giữ ở Review cho đến khi nhánh được merge vào `main`. CI cần kiểm tra theo commit mới; không suy từ lần trước.

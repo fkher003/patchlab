@@ -52,4 +52,4 @@ Một service luôn trả `exceeds-balance` và giữ tổng bằng 0 từng qua
 
 ## Điều kiện hoàn thành buổi học
 
-Bạn giải thích được idempotency, chạy lại được một lỗi, thêm được một test và chỉ ra ít nhất một giới hạn của PatchLab. Gửi câu trả lời hoặc phần code bạn sửa để được review trước khi sang buổi 2.
+Bạn giải thích được idempotency, chạy lại được một lỗi, thêm được một test và chỉ ra ít nhất một giới hạn của PatchLab. Khi sẵn sàng, tiếp tục với [Buổi 2 — CASE-001, shrinking và external report](LESSON-02.md).

@@ -31,18 +31,25 @@ function toolVersion(): string {
     return 'unknown';
   }
 }
+function parseNumberArg(raw: string, label: string): number {
+  if (raw.trim() === '') throw new Error(`Invalid ${label}`);
+  const value = Number(raw);
+  if (!Number.isFinite(value)) throw new Error(`Invalid ${label}`);
+  return value;
+}
 function replayData(value: unknown): { paid: number; requests: Request[] } {
   if (!value || typeof value !== 'object') throw new Error('Invalid report');
   const data = value as Record<string, unknown>;
   // Schema 1 (legacy, no provenance) is still replayable; anything else is refused, not guessed.
   if (data.schema !== 1 && data.schema !== REPORT_SCHEMA)
     throw new Error(
-      `Unsupported report schema ${String(data.schema)}; expected 1 or ${REPORT_SCHEMA}`,
+      `Unsupported report schema ${String(data.schema)}; expected 1 or ${REPORT_SCHEMA} (use replay-external for schema 3)`,
     );
   if (
     !Number.isSafeInteger(data.paid) ||
     Number(data.paid) < 0 ||
     !Array.isArray(data.requests) ||
+    data.requests.length === 0 ||
     data.requests.length > 10000
   )
     throw new Error('Invalid report');
@@ -66,6 +73,7 @@ async function main() {
   if (extra && !(command === 'replay-external' && extra === '--allow-changed'))
     throw new Error('Unknown option');
   if (command === 'help' || command === '--help' || !command) {
+    if (arg !== undefined) throw new Error('Too many arguments');
     console.log(
       'PatchLab: demo | check buggy|fixed [seed] | check-module file [seed] | check-store file [seed] | replay file [variant] | replay-external report trusted-adapter [--allow-changed] | benchmark [n] [--timing]',
     );
@@ -87,6 +95,7 @@ async function main() {
     return;
   }
   if (command === 'demo') {
+    if (arg !== undefined) throw new Error('Usage: demo');
     const requests = [
       { id: 'request-01', amount: 30000 },
       { id: 'request-01', amount: 30000 },
@@ -118,7 +127,7 @@ async function main() {
     const adapterFile = resolve(arg);
     const adapterHash = hashAdapter(adapterFile);
     const factory = await loadAdapter(adapterFile);
-    const startSeed = seedArg === undefined ? 42 : Number(seedArg);
+    const startSeed = seedArg === undefined ? 42 : parseNumberArg(seedArg, 'seed');
     generate(startSeed, 0);
     const paid = 100000;
     for (let trial = 0; trial < 100; trial++) {
@@ -128,8 +137,9 @@ async function main() {
       if (!failure) continue;
       const fails = (xs: Request[]) => check(factory(paid), paid, xs)?.rule === failure.rule;
       const requests = minimize(original, fails);
+      const reduced = check(factory(paid), paid, requests)!;
       console.log(`FAIL ${failure.rule}; ${original.length} -> ${requests.length} operations`);
-      console.log(JSON.stringify(check(factory(paid), paid, requests), null, 2));
+      console.log(JSON.stringify(reduced, null, 2));
       console.log(JSON.stringify(requests));
       const paths = writeExternalReport({
         contract: 'refund',
@@ -137,7 +147,7 @@ async function main() {
         config: { paid },
         operations: requests,
         originalLength: original.length,
-        failure: check(factory(paid), paid, requests)!,
+        failure: reduced,
         adapter: adapterFile,
         adapterHash,
       });
@@ -151,10 +161,11 @@ async function main() {
     return;
   }
   if (command === 'benchmark') {
-    const n = arg === undefined ? 500 : Number(arg);
-    if (seedArg !== undefined && seedArg !== '--timing')
+    const timingOnly = arg === '--timing' && seedArg === undefined;
+    if (!timingOnly && seedArg !== undefined && seedArg !== '--timing')
       throw new Error('Usage: benchmark [n] [--timing]');
-    const timing = seedArg === '--timing';
+    const n = arg === undefined || timingOnly ? 500 : parseNumberArg(arg, 'n');
+    const timing = timingOnly || seedArg === '--timing';
     const load = async (file: string) =>
       (
         (await import(new URL(`../examples/${file}`, import.meta.url).href)) as {
@@ -192,7 +203,7 @@ async function main() {
     const adapterFile = resolve(arg);
     const adapterHash = hashAdapter(adapterFile);
     const factory = await loadStoreAdapter(adapterFile, 2);
-    const startSeed = seedArg === undefined ? 42 : Number(seedArg);
+    const startSeed = seedArg === undefined ? 42 : parseNumberArg(seedArg, 'seed');
     generateStoreOps(startSeed, 0);
     for (let trial = 0; trial < 100; trial++) {
       const seed = (startSeed + trial) >>> 0;
@@ -203,10 +214,11 @@ async function main() {
         original,
         async (xs) => (await checkStore(factory, xs))?.rule === failure.rule,
       );
+      const reduced = (await checkStore(factory, ops))!;
       console.log(
         `FAIL ${failure.rule}; ${original.length} -> ${ops.length} operations (maxSize=2)`,
       );
-      console.log(JSON.stringify(await checkStore(factory, ops), null, 2));
+      console.log(JSON.stringify(reduced, null, 2));
       console.log(JSON.stringify(ops));
       const paths = writeExternalReport({
         contract: 'lock-store',
@@ -214,7 +226,7 @@ async function main() {
         config: { maxSize: 2 },
         operations: ops,
         originalLength: original.length,
-        failure: (await checkStore(factory, ops))!,
+        failure: reduced,
         adapter: adapterFile,
         adapterHash,
       });
@@ -229,10 +241,10 @@ async function main() {
   }
   if (command !== 'check')
     throw new Error(
-      'Usage: demo | check buggy|fixed [seed] | check-module file [seed] | check-store file [seed] | benchmark [n] | replay file [variant]',
+      'Usage: demo | check buggy|fixed [seed] | check-module file [seed] | check-store file [seed] | replay file [variant] | replay-external report trusted-adapter [--allow-changed] | benchmark [n] [--timing]',
     );
   const name = variant(arg);
-  const startSeed = seedArg === undefined ? 42 : Number(seedArg);
+  const startSeed = seedArg === undefined ? 42 : parseNumberArg(seedArg, 'seed');
   generate(startSeed, 0); // Validate before truncation to uint32.
   const paid = 100000;
   for (let trial = 0; trial < 100; trial++) {
