@@ -1,14 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { check } from '../src/checker.ts';
 import { loadAdapter } from '../src/adapter.ts';
 
 const fixture = (name: string) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
 const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
-const reports = fileURLToPath(new URL('../reports/failure.json', import.meta.url));
 
 test('adapter: a correct external module passes, a reject-all module is caught', async () => {
   const good = await loadAdapter(fixture('good-adapter.mjs'));
@@ -24,6 +25,16 @@ test('adapter: throwing and malformed services become failures, not crashes', as
   assert.equal(check(badShape, 10, [{ id: 'a', amount: 1 }])?.rule, 'contract-violation');
   const noResult = { total: () => 0, refund: () => undefined as never };
   assert.equal(check(noResult, 10, [{ id: 'a', amount: 1 }])?.rule, 'contract-violation');
+  for (const badTotal of ['0', NaN, Infinity, 1.5, null, undefined]) {
+    const badTotalService = {
+      total: () => badTotal as never,
+      refund: () => ({ status: 'invalid' as const }),
+    };
+    const failure = check(badTotalService, 10, [{ id: ' ', amount: 1 }]);
+    assert.equal(failure?.rule, 'contract-violation');
+    assert.ok(Number.isSafeInteger(failure?.before));
+    assert.ok(Number.isSafeInteger(failure?.after));
+  }
 });
 
 test('adapter: invalid modules are rejected with clear errors', async () => {
@@ -31,10 +42,12 @@ test('adapter: invalid modules are rejected with clear errors', async () => {
   await assert.rejects(loadAdapter(fixture('missing.mjs')));
 });
 
-test('CLI check-module: exit 0 for good, 1 for reject-all, 2 for bad module; writes no report', () => {
-  const existedBefore = existsSync(reports);
+test('CLI check-module: exit 0 for good, 1 for reject-all, 2 for bad module', (t) => {
+  const cwd = mkdtempSync(join(tmpdir(), 'patchlab-adapter-'));
+  t.after(() => rmSync(cwd, { recursive: true, force: true }));
   const run = (file: string) =>
     spawnSync(process.execPath, [cli, 'check-module', fixture(file)], {
+      cwd,
       encoding: 'utf8',
       timeout: 15000,
     });
@@ -44,5 +57,4 @@ test('CLI check-module: exit 0 for good, 1 for reject-all, 2 for bad module; wri
   assert.match(rejected.stdout, /model-status-mismatch/);
   assert.equal(run('no-create-adapter.mjs').status, 2);
   assert.equal(spawnSync(process.execPath, [cli, 'check-module']).status, 2);
-  assert.equal(existsSync(reports), existedBefore);
 });

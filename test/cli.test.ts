@@ -43,11 +43,19 @@ test('CLI detects, replays and exports a real executable regression', () => {
     assert.equal(run(['--test', `${dir}/repro.test.ts`], 'fixed').status, 0);
     assert.equal(run(['src/cli.ts', 'check', 'fixed']).status, 0);
     assert.equal(run(['src/cli.ts', 'check', 'buggy', '-1']).status, 2);
+    assert.equal(run(['src/cli.ts', 'check', 'buggy', '']).status, 2);
+    assert.equal(run(['src/cli.ts', 'check', 'buggy', '   ']).status, 2);
+    assert.equal(run(['src/cli.ts', 'demo', 'extra']).status, 2);
     assert.equal(run(['src/cli.ts', 'check', 'unknown']).status, 2);
     writeFileSync(join(root, 'invalid.json'), '{');
     assert.equal(run(['src/cli.ts', 'replay', 'invalid.json']).status, 2);
     writeFileSync(join(root, 'invalid.json'), JSON.stringify({ paid: 1, requests: [{ id: 1 }] }));
     assert.equal(run(['src/cli.ts', 'replay', 'invalid.json']).status, 2);
+    writeFileSync(
+      join(root, 'empty-ops.json'),
+      JSON.stringify({ schema: 2, paid: 100000, requests: [] }),
+    );
+    assert.equal(run(['src/cli.ts', 'replay', 'empty-ops.json', 'buggy']).status, 2);
     // A second failing run gets its own directory; the first report is untouched.
     const first = readFileSync(join(root, dir, 'failure.json'), 'utf8');
     assert.equal(run(['src/cli.ts', 'check', 'buggy', '42']).status, 1);

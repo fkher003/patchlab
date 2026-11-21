@@ -24,3 +24,7 @@ Test: test/lockstore.test.ts chạy đúng chuỗi trong issue (maxSize 1: lock 
 ## Quy tắc kiểm chứng và giới hạn
 
 Quy tắc lấy từ chính chú thích của upstream (lock trả false nếu khóa đã tồn tại): khóa đã lock và chưa complete/delete phải còn thấy được và không lock lại được. Checker không khẳng định gì về khóa đã hoàn tất, vì việc xóa chúng khi đầy là hợp lệ. Giới hạn: không kiểm TTL, đồng thời, hay các store khác của upstream; PASS chỉ nói trong 100 chuỗi × 30 thao tác với maxSize 2. Mình không phải tác giả upstream và chưa gửi gì cho họ.
+
+## Đối chiếu lại ngày 20/11/2026
+
+Codex đã đọc issue #89 qua GitHub API và lấy raw memory.ts từ hai SHA ghi trên. Nội dung hai file vendor khớp raw upstream sau chuẩn hóa CRLF/LF và newline cuối file. Vendor không bị sửa trong phiên này. Luồng npm run showcase nay tạo report/replay/regression trên ca này.

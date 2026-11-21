@@ -25,6 +25,13 @@ test('benchmark: no false positives on correct targets, bugs detected, determini
     }
   }
   assert.equal(rows.length, 5);
+  const timed = await runBenchmark(10, stores, true);
+  for (const item of timed) {
+    assert.ok(item.timing, item.target);
+    assert.ok(Number.isFinite(item.timing.checkMs) && item.timing.checkMs >= 0);
+    assert.ok(Number.isFinite(item.timing.shrinkMs) && item.timing.shrinkMs >= 0);
+  }
+  assert.doesNotMatch(toMarkdown(timed), /undefined|NaN/);
   assert.match(toMarkdown(rows), /\| parent \| bug \| 100 \|/);
 });
 
