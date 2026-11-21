@@ -1,88 +1,167 @@
 # PatchLab
 
-**Tìm lỗi logic bằng chuỗi thao tác, rút gọn phản ví dụ và xuất bằng chứng chạy lại được.**
+[![CI](https://github.com/fkher003/patchlab/actions/workflows/ci.yml/badge.svg)](https://github.com/fkher003/patchlab/actions/workflows/ci.yml)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524.12-339933?logo=node.js&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-PatchLab là developer tool viết bằng TypeScript/Node.js. Nó đối chiếu hành vi hoàn tiền với model tham chiếu và kiểm tra quy tắc kho khóa idempotency. Có ca tái hiện lỗi công khai của hono-idempotency, adapter module ngoài, báo cáo JSON/HTML và test regression tự xuất.
+**Model-based logic testing that finds stateful bugs, shrinks failing sequences, and exports replayable evidence.**
 
-Trạng thái v0.2.0: bản portfolio chạy được, chưa có phản hồi người dùng ngoài dự án. Không phải công cụ chứng minh đúng mọi chương trình hay AI reviewer tổng quát. Lỗi upstream là lỗi đã công khai được tái hiện, không phải phát hiện mới của tác giả PatchLab.
+PatchLab is a zero-runtime-dependency TypeScript/Node.js developer tool. It checks refund services against an independent reference model and validates idempotency lock-store invariants. When a violation is found, PatchLab minimizes the failing operation sequence and generates a versioned JSON report, a static HTML report, and an executable Node test (`repro.test.ts`) with SHA-256 adapter provenance.
 
-## Demo trong một lệnh
+## Quick Demo (One Command)
 
-Node theo .node-version (tối thiểu 24.12), npm. Không cần API key hoặc tài khoản dịch vụ.
+Requires Node.js >= 24.12 (see `.node-version`) and npm. No API keys or external services required.
 
-    npm ci
-    npm run verify
-    npm run showcase
+```bash
+npm ci
+npm run verify
+npm run showcase
+```
 
-Trên PowerShell dùng npm.cmd nếu npm.ps1 bị execution policy chặn. Không cần thay execution policy.
+> On Windows PowerShell, use `npm.cmd` if `npm.ps1` is blocked by execution policy.
 
-Showcase tự chạy bốn bước, không cần điền tên thư mục report:
+`npm run showcase` runs an end-to-end verification against a real public bug (`hono-idempotency #89`):
 
-1. Chạy mã upstream trước bản sửa: FAIL processing-key-lost.
-2. Rút chuỗi từ 30 xuống 4 thao tác và lưu report/test/HTML.
-3. Replay cùng chuỗi trên bản lỗi, rồi so với bản sửa: bản lỗi FAIL, bản sửa PASS.
-4. Chạy test được xuất ra trên bản sửa: PASS. Báo cáo nằm trong reports/ và được giữ lại.
+1. Runs the pinned upstream buggy store and detects `processing-key-lost`.
+2. Shrinks the failing sequence from **30 operations down to 4** and writes `failure.json`, `report.html`, and `repro.test.ts`.
+3. Replays the exact recorded sequence against the buggy store (`FAIL`) and the fixed store (`PASS`).
+4. Executes the generated regression test against the fixed store (`PASS`).
 
-[Xem báo cáo HTML mẫu](docs/evidence/case001-report.html) (tải về rồi mở trong trình duyệt), [nguồn ca lỗi](docs/CASE-001.md), [kịch bản demo 90 giây](docs/DEMO.md).
+### Sample Output
 
-## Ví dụ lỗi được tìm
+```text
+1/4 Find and minimize the upstream store failure
+FAIL processing-key-lost; 30 -> 4 operations (maxSize=2)
+{
+  "rule": "processing-key-lost",
+  "step": 3,
+  "operation": { "op": "get", "key": "k2" },
+  "detail": "get() lost a key that is still processing"
+}
+[{"op":"lock","key":"k2"},{"op":"lock","key":"k3"},{"op":"lock","key":"k4"},{"op":"get","key":"k2"}]
+Report: reports/lock-store-seed42-.../failure.json
+Regression test: reports/lock-store-seed42-.../repro.test.ts
+HTML: reports/lock-store-seed42-.../report.html
 
-Kho maxSize=2: lock k2 → lock k3 → lock k4 → get k2. Bản cũ loại k2 dù vẫn processing. Điều đó có thể cho phép yêu cầu lặp chạy lại trong khi yêu cầu đầu đang xử lý. PatchLab tìm được chuỗi vi phạm; nó không khẳng định một giao dịch tiền thật đã xảy ra.
+2/4 Replay the exact recorded sequence on the original adapter
+{ rule: 'processing-key-lost', step: 3, operation: { op: 'get', key: 'k2' }, detail: 'get() lost a key that is still processing' }
 
-## Kiểm tra module của bạn
+3/4 Compare the fixed adapter (intentional source change)
+PASS for recorded sequence only
 
-Module cần xuất create theo [contract](docs/SPEC.md). Chỉ nạp module tin cậy: mã chạy với quyền người dùng, chưa có sandbox hoặc timeout cho từng thao tác.
+4/4 Run the exported regression test against the fixed adapter
+✔ external regression (3.96ms)
+ℹ tests 1 | pass 1 | fail 0
+Showcase complete. Open the report.html file printed above. Reports have been preserved.
+```
 
-    npm run check-module -- test/fixtures/reject-adapter.mjs 42
-    npm run check-store -- examples/hono-parent.mjs 42
+See the [sample HTML report](docs/evidence/case001-report.html) (download and open in a browser) and the [case study](docs/CASE-001.md).
 
-Khi có lỗi, CLI in đường dẫn failure.json, repro.test.ts và report.html. Mỗi run dùng thư mục riêng. Tên module và SHA-256 của file adapter được ghi vào provenance; hash chưa bao phủ các dependency được import.
+## Real-World Bug Reproduced
 
-Để chạy lại, thay REPORT bằng đường dẫn failure.json vừa in:
+In `paveg/hono-idempotency` issue #89, an LRU cache with `maxSize = 2` evicts an active `processing` lock when new keys arrive:
 
-    npm run replay-external -- REPORT examples/hono-parent.mjs
-    npm run replay-external -- REPORT examples/hono-fixed.mjs --allow-changed
+```text
+lock("k2")  →  lock("k3")  →  lock("k4")  →  get("k2")  ⇒  FAIL: processing-key-lost
+```
 
-Report không tự chọn mã thực thi. Bạn phải chỉ định adapter. Mặc định khác hash sẽ bị từ chối trước import; --allow-changed dùng khi cố ý so bản sửa.
+Because `k2` is evicted while still in the `processing` state, a duplicate request for `k2` could bypass the idempotency lock while the first request is still running. PatchLab reproduces this against the pinned upstream parent commit and verifies that the upstream fix passes the exact same sequence.
 
-Test xuất ra yêu cầu PATCHLAB_ADAPTER trỏ tới adapter tin cậy. Khi thử bản sửa khác hash, đặt PATCHLAB_ALLOW_CHANGED=1. Showcase tự thiết lập các biến này chỉ cho tiến trình con.
+_(Note: This reproduces a previously disclosed public bug to validate PatchLab; it is not a newly discovered vulnerability.)_
 
-## Lệnh và exit code
+## Architecture
 
-| Lệnh                                      | Mục đích                                                |
-| ----------------------------------------- | ------------------------------------------------------- |
-| npm run demo                              | Ví dụ hoàn tiền mô phỏng đơn giản                       |
-| npm run showcase                          | Ca upstream end-to-end, xuất báo cáo và chạy regression |
-| npm run check:buggy / check:fixed         | Service hoàn tiền mẫu                                   |
-| npm run replay -- REPORT buggy hoặc fixed | Replay report builtin schema 1/2                        |
-| npm run replay-external -- REPORT ADAPTER | Replay report external schema 3                         |
-| npm run benchmark -- 500                  | Kết quả xác định theo seed, 5 target                    |
-| npm run benchmark:timing                  | Thêm thời gian check/shrink và môi trường               |
-| npm run verify                            | Typecheck strict, Prettier, toàn bộ test                |
+```mermaid
+flowchart LR
+    CLI[CLI] --> Gen[Seeded Generator]
+    Gen --> Check[Model / Invariant Checker]
+    Check --> Adapter[External Adapter]
+    Check --> Shrink[1-Minimal Shrinker]
+    Shrink --> Out["JSON + HTML + repro.test.ts"]
+    Out --> Replay["Explicit-Target Replay (SHA-256 verified)"]
+```
 
-Exit 0 = chưa thấy vi phạm trong phạm vi chạy; 1 = tìm vi phạm; 2 = tham số/report/module không hợp lệ. Demo/showcase trả 0 khi các kết quả mong đợi đều đúng, kể cả khi target buggy trả FAIL.
+| Module                   | Responsibility                                                         |
+| ------------------------ | ---------------------------------------------------------------------- |
+| `src/model.ts`           | Independent reference model for refund state transitions               |
+| `src/checker.ts`         | Compares refund service observations against the reference model       |
+| `src/lockstore.ts`       | Stateful invariant checker for idempotency lock stores                 |
+| `src/adapter.ts`         | Loads and validates external JS/TS adapter contracts                   |
+| `src/external-report.ts` | Schema v3 validation, SHA-256 provenance, HTML/test export, and replay |
+| `src/benchmark.ts`       | Deterministic multi-seed benchmark with optional check/shrink timing   |
+| `src/cli.ts`             | Command-line entrypoint with strict argument validation and exit codes |
 
-## Bằng chứng và giới hạn
+## Checking Your Own Module
 
-Benchmark 500 seed/target: refund buggy 499 chuỗi có lỗi, always-reject 500, upstream parent 431; hai target đã sửa không báo vi phạm trong tập này. Một chuỗi upstream cụ thể rút từ 30 xuống 4 thao tác. Xem [phương pháp và thời gian đo](docs/BENCHMARK.md).
+External modules export a `create()` factory matching the contract in `docs/SPEC.md`.
 
-- 31 test ở bản chuẩn bị v0.2.0, gồm CLI, model, adapter contract, hash/metadata, regression export, showcase end-to-end và timing. Lệnh verify là bằng chứng hiện hành nếu số test thay đổi.
-- Một lỗi công khai, hai bản lỗi hoàn tiền mô phỏng; không suy rộng tỷ lệ phát hiện ra mọi phần mềm.
-- Shrinker chỉ đạt mức không thể bỏ riêng một thao tác nữa, không bảo đảm tối thiểu toàn cục.
-- Chưa kiểm TTL, crash, concurrency, database thật hoặc code không tin cậy.
-- Model có thể sai; giữ test ví dụ độc lập. PASS không phải chứng minh đúng hoàn toàn.
-- Report/repro giữ các tham chiếu tới source project. Giữ checkout kèm báo cáo; không coi riêng file test là một package độc lập.
+```bash
+npm run check-module -- test/fixtures/reject-adapter.mjs 42
+npm run check-store -- examples/hono-parent.mjs 42
+```
 
-## Kiến trúc
+When a failure is found, PatchLab writes `failure.json`, `report.html`, and `repro.test.ts` into a unique directory under `reports/`. The report records the adapter filename and entry-file SHA-256 hash.
 
-CLI → generator có seed → checker/model → adapter → chuỗi lỗi → shrinker → JSON + HTML + regression → replay.
+To replay a recorded failure against the original adapter or compare against a fix:
 
-src/model.ts mô tả kết quả hoàn tiền kỳ vọng; checker.ts quan sát service; lockstore.ts kiểm quy tắc khóa; external-report.ts validate dữ liệu, hash nguồn, export/replay; benchmark.ts đo tập thử. Chi tiết ở [ARCHITECTURE](docs/ARCHITECTURE.md).
+```bash
+npm run replay-external -- <path/to/failure.json> examples/hono-parent.mjs
+npm run replay-external -- <path/to/failure.json> examples/hono-fixed.mjs --allow-changed
+```
 
-## Học và cộng tác
+**Security & provenance design:** Reports never auto-execute arbitrary file paths stored inside JSON. You must explicitly pass the adapter path on the CLI. By default, PatchLab verifies the entry-file SHA-256 hash _before_ calling `import()` and rejects modified files unless `--allow-changed` is explicitly set.
 
-[Hướng dẫn 15 phút](docs/QUICKSTART-LEARNING.md) · [Buổi học 1](docs/LESSON-01.md) · [Buổi học 2](docs/LESSON-02.md) · [SPEC](docs/SPEC.md) · [BACKLOG](docs/BACKLOG.md) · [STATUS](docs/STATUS.md) · [Nội dung CV](docs/CV.md).
+## CLI Commands & Exit Codes
 
-AI tiếp tục đọc AGENTS.md và STATUS.md, kiểm tra Git trước khi sửa. Một AI ghi checkout tại một thời điểm. Repository giữ private; nhà tuyển dụng không tự truy cập được link private — cung cấp demo hoặc quyền truy cập phù hợp khi bạn quyết định chia sẻ.
+| Command                                         | Description                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------- |
+| `npm run showcase`                              | End-to-end upstream bug reproduction, report export, and regression run |
+| `npm run demo`                                  | Minimal built-in refund model demonstration                             |
+| `npm run check:buggy` / `check:fixed`           | Run checker against built-in refund implementations                     |
+| `npm run check-module -- <adapter> [seed]`      | Check an external refund adapter                                        |
+| `npm run check-store -- <adapter> [seed]`       | Check an external idempotency lock-store adapter                        |
+| `npm run replay -- <report> <buggy\|fixed>`     | Replay built-in reports (schema v1/v2)                                  |
+| `npm run replay-external -- <report> <adapter>` | Replay external reports (schema v3)                                     |
+| `npm run benchmark -- 500`                      | Deterministic 500-seed benchmark across 5 targets                       |
+| `npm run benchmark:timing`                      | Benchmark with separate check/shrink timings and environment info       |
+| `npm run verify`                                | Strict TypeScript typecheck, Prettier check, and full test suite        |
 
-Mã upstream MIT được giữ trong vendor/hono-idempotency với LICENSE và NOTICE. PatchLab không liên kết với dự án upstream. Chưa gửi thông báo hoặc PR cho họ.
+**Exit codes:** `0` = no violation found (or expected showcase/demo outcome succeeded), `1` = logic violation detected, `2` = invalid arguments, malformed report, or broken adapter contract.
+
+## Benchmark & Known Limitations
+
+Across **500 deterministic seeds per target**:
+
+| Target                              | Failing Seeds (out of 500) | Expected |
+| ----------------------------------- | -------------------------- | -------- |
+| `refund: buggy` (simulated)         | 499                        | Fails    |
+| `refund: always-reject` (simulated) | 500                        | Fails    |
+| `refund: fixed`                     | 0                          | Passes   |
+| `store: hono-parent` (upstream bug) | 431                        | Fails    |
+| `store: hono-fixed` (upstream fix)  | 0                          | Passes   |
+
+Current test suite: **31 automated tests** covering model invariants, adapter contracts, SHA-256 provenance, cross-directory regression execution, CLI exit codes, benchmark timing, and end-to-end showcase runs.
+
+**Scope & limitations:**
+
+- **Trusted code only:** External adapters execute with the current user's Node.js permissions; there is no sandbox or per-operation timeout yet.
+- **Entry-file hashing:** SHA-256 provenance hashes the adapter entry file, not transitive imports.
+- **Local minimality:** The shrinker guarantees 1-minimality (no single operation can be removed while preserving failure), not global minimality.
+- **Single-threaded in-memory scope:** Concurrency races, TTL expiration, crash recovery, and real database backends are not yet modeled.
+- **No false guarantees:** Passing a seeded test suite is not a formal proof of correctness; reference models themselves can have bugs and are tested independently.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Specification & Adapter Contracts](docs/SPEC.md)
+- [Case Study 001: hono-idempotency #89](docs/CASE-001.md)
+- [Benchmark Methodology & Timings](docs/BENCHMARK.md)
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+
+## Attribution & License
+
+PatchLab is licensed under the [MIT License](LICENSE).
+
+Pinned upstream source code used for Case Study 001 is stored under `vendor/hono-idempotency` with its original MIT `LICENSE` and `NOTICE`. PatchLab is not affiliated with or endorsed by the upstream project.

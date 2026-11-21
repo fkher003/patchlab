@@ -17,6 +17,7 @@
 | PL-108 | P2      | Đo thời gian benchmark tách check và shrink           | Review     | PL-105         |
 | PL-109 | P1      | Showcase một lệnh, HTML evidence, README/CV/DEMO      | Review     | PL-107, PL-108 |
 | PL-110 | P1      | Review độc lập PR #2, hardening contract/CLI & bài 2  | Review     | PL-107..109    |
+| PL-111 | P1      | Hoàn thiện bề mặt repo tiếng Anh + LICENSE cho CV     | Review     | PL-110         |
 
 ## Sprint 0 — Nền móng
 
@@ -95,4 +96,12 @@ PL-107 và PL-108 đã đạt phần triển khai/test local trên feat/portfoli
   6. `scripts/showcase.mjs` dùng đường dẫn tuyệt đối cho adapter và chạy trên `process.cwd()`, thêm test tự động chạy toàn bộ showcase trong thư mục tạm (tổng 31/31 test).
 - Thêm `docs/LESSON-02.md` (Buổi 2 — CASE-001, shrinking 1-minimal, SHA-256 provenance và 4 câu hỏi phỏng vấn thực hành) để người dùng học sâu sau khi hoàn thiện code.
 
-PL-105 vẫn chưa Done vì không có feedback thật. PL-106..110 giữ ở Review cho đến khi nhánh được merge vào `main`. CI cần kiểm tra theo commit mới; không suy từ lần trước.
+### PL-111 — Review: bề mặt repo tiếng Anh và MIT LICENSE cho nhà tuyển dụng
+
+Ưu tiên P1, phụ thuộc PL-110.
+
+- Viết lại `README.md` hoàn toàn bằng tiếng Anh với badges, output thực tế từ `npm run showcase`, sơ đồ Mermaid kiến trúc, bảng benchmark 500 seed, CLI/exit codes và giới hạn trung thực; gỡ các liên kết tài liệu nội bộ AI/học tập (`STATUS.md`, `CV.md`, `LESSON-01/02`) khỏi README public.
+- Chuyển `CONTRIBUTING.md` và `CHANGELOG.md` sang tiếng Anh.
+- Bổ sung file `LICENSE` (MIT) ở thư mục gốc.
+
+PL-105 vẫn chưa Done vì không có feedback thật. PL-106..111 giữ ở Review cho đến khi nhánh được merge vào `main`. CI cần kiểm tra theo commit mới; không suy từ lần trước.

@@ -1,10 +1,10 @@
 # Trạng thái bàn giao PatchLab
 
-Cập nhật 20/11/2026, Asia/Saigon.
+Cập nhật 21/11/2026, Asia/Saigon.
 
 ## Phiên và checkout
 
-- Trạng thái: Handoff ready — Antigravity đã hoàn thành review độc lập PR #2 (commit e3dd6e1) và PL-110 trên nhánh feat/portfolio-ready.
+- Trạng thái: Handoff ready — Antigravity đã hoàn thành PL-111 (bề mặt repo tiếng Anh, MIT LICENSE, README sạch cho nhà tuyển dụng) trên nhánh feat/portfolio-ready.
 - Local: D:/Projects/patchlab. Nhánh feat/portfolio-ready; base 9e7dfa6 (PL-106), main trước đó db2d905.
 - Người dùng yêu cầu hoàn thiện bản đưa vào CV trước, học sau. Không dừng công việc để giao bài tập.
 - Không merge hoặc đổi quyền riêng tư repo. Tra git log lấy commit hiện tại.
@@ -22,6 +22,10 @@ Cập nhật 20/11/2026, Asia/Saigon.
   - Hiển thị thêm `Config` và `Observed failure` trong HTML report (`renderReport` và `docs/evidence/case001-report.html`).
   - Cho phép `scripts/showcase.mjs` chạy trên `process.cwd()` và thêm test tự động chạy showcase trong thư mục tạm không chạm `reports/` của repo.
   - Bổ sung `docs/LESSON-02.md` cho lộ trình học sâu và ôn phỏng vấn sau khi hoàn thiện code.
+- PL-111 (Antigravity — polish bề mặt repo cho CV/nhà tuyển dụng):
+  - Viết lại `README.md` hoàn toàn bằng tiếng Anh, bổ sung badges, output thực tế từ `npm run showcase`, sơ đồ Mermaid kiến trúc, bảng benchmark và gỡ các liên kết tài liệu nội bộ (`STATUS.md`, `CV.md`, `LESSON-01/02`) khỏi README public.
+  - Chuyển `CONTRIBUTING.md` và `CHANGELOG.md` sang tiếng Anh.
+  - Thêm file `LICENSE` (MIT) ở thư mục gốc.
 - Đã đối chiếu raw upstream tại hai SHA với vendor (chuẩn hóa xuống dòng), khớp nội dung. Không sửa vendor hoặc xóa reports.
 
 ## Kiểm chứng
